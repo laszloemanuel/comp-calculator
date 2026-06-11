@@ -170,6 +170,14 @@
   .plan-row { margin-bottom:8px; }
   .plan-row .icon-btn { background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--red);height:34px;font-size:14px; }
   .plan-row .icon-btn:hover { background:#fef2f2; }
+  /* benefit rows */
+  .ben-head, .ben-row { display:grid; grid-template-columns: 22px 1.5fr 1.1fr .8fr auto 30px; gap:8px; align-items:center; }
+  .ben-head { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin:4px 0 6px; padding:0 2px; }
+  .ben-row { margin-bottom:8px; }
+  .ben-row input[type="checkbox"] { width:auto; }
+  .ben-row .icon-btn { background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--red);height:34px;font-size:14px; }
+  .ben-row .icon-btn:hover { background:#fef2f2; }
+  .ben-toemp { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); justify-content:center; }
 
   /* candidates */
   .cand-card { border:1px solid var(--border); border-radius:10px; padding:0; margin-bottom:16px; overflow:hidden; box-shadow:var(--shadow); background:var(--panel); }
@@ -343,12 +351,27 @@
             <div class="field" style="margin-top:6px">
               <label><input type="checkbox" id="huPitExempt" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_exempt">Personal income tax exemption (under 25 / mother)</span></label>
             </div>
+            <div class="field">
+              <label><input type="checkbox" id="huEkho" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_ekho">EKHO taxation (simplified flat regime)</span></label>
+            </div>
           </div>
           <div id="pkgBr" style="display:none">
             <div class="field" style="margin-top:6px">
               <label><input type="checkbox" id="brInclude13" style="width:auto;margin-right:6px" /><span data-i18n="pkg_br_13th">Include 13th salary (décimo terceiro)</span></label>
             </div>
           </div>
+        </div>
+
+        <div class="card" id="benefitsCard" style="margin-top:20px">
+          <h2>
+            <span><span data-i18n="card_benefits">Benefits</span> <span class="muted" id="benCurNote" style="font-size:11px;font-weight:400"></span></span>
+            <button class="btn ghost sm" id="addBenefitBtn" data-i18n="p_addbenefit">+ Add</button>
+          </h2>
+          <div class="ben-head">
+            <div></div><div data-i18n="p_plan_name">Name</div><div data-i18n="p_amount">Amount / yr</div><div data-i18n="p_empshare">Levy</div><div data-i18n="ben_net">net</div><div></div>
+          </div>
+          <div id="benefitsList"></div>
+          <div class="note" data-i18n="benefits_note" style="margin-top:10px">Typical local fringe benefits.</div>
         </div>
       </div>
 
@@ -565,6 +588,12 @@
       </div>
       <div class="field"><label data-i18n="p_hu_other">Other employer cost (fixed / yr)</label>
         <div class="inline"><span class="suffix">Ft</span><input type="number" data-cp="huP" data-k="otherEmployer" /></div></div>
+      <div class="grid cols-2" style="gap:12px">
+        <div class="field"><label data-i18n="p_hu_ekho_emp">EKHO — employee</label>
+          <div class="inline"><input type="number" step="0.1" data-cp="huP" data-k="ekhoEmp" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_hu_ekho_empr">EKHO — payer (employer)</label>
+          <div class="inline"><input type="number" step="0.1" data-cp="huP" data-k="ekhoEmployer" /><span class="suffix">%</span></div></div>
+      </div>
     </div>
    </div>
 
@@ -713,6 +742,44 @@ const DEFAULT_PLANS = [
   { name: "Premium PPO",  premiumIndividual: 13000, premiumFamily: 30000, employerShare: 85 }
 ];
 
+/* Typical fringe-benefit elements per country (2025 approximations, all editable).
+   amount = annual value in the country's native currency.
+   levy   = employer public charge on top (%) — tax-advantaged items carry a special levy.
+   toEmp  = whether the employee receives the value (counts toward total employee value). */
+const DEFAULT_BENEFITS = {
+  US: [
+    { key: "hsa",      name: "HSA employer contribution", name_hu: "HSA munkáltatói hozzájárulás", amount: 1000, levy: 0, toEmp: true,  on: false },
+    { key: "dental",   name: "Dental & vision",           name_hu: "Fogászat és látás",            amount: 600,  levy: 0, toEmp: true,  on: false },
+    { key: "life",     name: "Life & disability insurance",name_hu: "Élet- és rokkantbiztosítás",  amount: 500,  levy: 0, toEmp: false, on: false },
+    { key: "rsu",      name: "RSU / equity (annual)",     name_hu: "RSU / részvény (éves)",        amount: 0,    levy: 0, toEmp: true,  on: false },
+    { key: "commuter", name: "Commuter benefit",          name_hu: "Közlekedési juttatás",         amount: 1200, levy: 0, toEmp: true,  on: false },
+    { key: "tuition",  name: "Tuition / L&D",             name_hu: "Tandíj / képzés",              amount: 2000, levy: 0, toEmp: false, on: false }
+  ],
+  HU: [
+    { key: "szep",   name: "SZÉP card",            name_hu: "SZÉP-kártya",            amount: 450000,  levy: 28, toEmp: true,  on: true },
+    { key: "car",    name: "Company car allowance",name_hu: "Cégautó / autó keret",   amount: 1200000, levy: 0,  toEmp: false, on: false },
+    { key: "fuel",   name: "Fuel allowance",       name_hu: "Üzemanyag keret",        amount: 600000,  levy: 0,  toEmp: false, on: false },
+    { key: "health", name: "Private health insurance", name_hu: "Magán egészségbiztosítás", amount: 300000, levy: 33, toEmp: true, on: false },
+    { key: "cafet",  name: "Other cafeteria",      name_hu: "Egyéb cafeteria",        amount: 200000,  levy: 28, toEmp: true,  on: false },
+    { key: "home",   name: "Home-office allowance",name_hu: "Home-office átalány",    amount: 0,       levy: 0,  toEmp: true,  on: false }
+  ],
+  AT: [
+    { key: "car",    name: "Company car (Sachbezug)", name_hu: "Céges autó (Sachbezug)", amount: 9000, levy: 0, toEmp: false, on: false },
+    { key: "meal",   name: "Meal vouchers (Essensbon)",name_hu: "Étkezési utalvány (Essensbon)", amount: 1800, levy: 0, toEmp: true, on: false },
+    { key: "klima",  name: "Klimaticket / public transport", name_hu: "Klimaticket / bérlet", amount: 1095, levy: 0, toEmp: true, on: false },
+    { key: "zukunft",name: "Zukunftssicherung (pension)", name_hu: "Zukunftssicherung (nyugdíj)", amount: 300, levy: 0, toEmp: true, on: false },
+    { key: "health", name: "Private health insurance", name_hu: "Magán egészségbiztosítás", amount: 1200, levy: 0, toEmp: true, on: false }
+  ],
+  BR: [
+    { key: "vr",     name: "Meal/food voucher (VR/VA)", name_hu: "Étkezési utalvány (VR/VA)", amount: 12000, levy: 0, toEmp: true, on: true },
+    { key: "vt",     name: "Transport voucher (VT)",    name_hu: "Közlekedési utalvány (VT)", amount: 6000,  levy: 0, toEmp: true, on: false },
+    { key: "saude",  name: "Health plan (plano de saúde)", name_hu: "Egészségterv (plano de saúde)", amount: 9600, levy: 0, toEmp: true, on: true },
+    { key: "odonto", name: "Dental plan (odontológico)",name_hu: "Fogászati terv (odontológico)", amount: 1200, levy: 0, toEmp: true, on: false },
+    { key: "plr",    name: "Profit sharing (PLR)",      name_hu: "Nyereségrészesedés (PLR)",  amount: 0,    levy: 0, toEmp: true, on: false },
+    { key: "gym",    name: "Gympass / wellness",        name_hu: "Gympass / wellness",        amount: 1200, levy: 0, toEmp: true, on: false }
+  ]
+};
+
 /* ---------- Countries ---------- */
 const COUNTRIES = {
   US: { name: "United States", flag: "🇺🇸", currency: "USD", symbol: "$",  locale: "en-US" },
@@ -838,6 +905,9 @@ const I18N = {
     li_pit_hu: "− Personal income tax (SZJA 15%)", li_tb_hu: "− Social security contribution (TB 18.5%)", li_szocho: "Social contribution tax (szocho)", exempt: "exempt", after_famallow: "after family allowance",
     li_sv_emp: "− Social insurance (SV)", li_lohnsteuer: "− Income tax (Lohnsteuer)", li_sv_empr: "Employer social insurance", li_db: "Employer contribution (DB / FLAF)", li_dz: "Surcharge (DZ)", li_kommunal: "Municipal tax (Kommunalsteuer)",
     li_inss: "− INSS (social security)", li_irrf: "− Income tax (IRRF)", li_empr_inss: "Employer INSS", li_rat: "RAT / accident insurance", li_sistemas: "Sistema S / third parties",
+    li_ekho_emp: "− EKHO (employee 15%)", li_ekho_empr: "EKHO (payer)", li_benefits_emp: "Benefits (tax-favoured value)", li_total_value: "Total value to employee",
+    card_benefits: "Benefits", p_addbenefit: "+ Add", p_amount: "Amount / yr", benefits_note: "Typical local fringe benefits. Amount = annual value in the country's currency; levy = employer public charge on top; “net” = the employee receives the value. All editable.", ben_net: "net",
+    pkg_hu_ekho: "EKHO taxation (simplified flat regime)", p_hu_ekho_emp: "EKHO — employee", p_hu_ekho_empr: "EKHO — payer (employer)",
     catchup_note: "Candidate is {age} — eligible for <b>401(k) catch-up contributions</b>. Consider a higher deferral in the offer narrative.",
     u_hr: "hr", u_days: "days", u_hrs: "hrs", u_hours: "hours", u_years: "yrs", u_children: "children", no_children: "No children", u_candidates: "candidates", u_generations: "saved generations",
     sub_rate_note: "Covers {basis} of {amount} across {days} billable days.",
@@ -893,6 +963,9 @@ const I18N = {
     li_pit_hu: "− Személyi jövedelemadó (SZJA 15%)", li_tb_hu: "− Társadalombiztosítási járulék (TB 18,5%)", li_szocho: "Szociális hozzájárulási adó (szocho)", exempt: "mentes", after_famallow: "családi kedvezmény után",
     li_sv_emp: "− Társadalombiztosítás (SV)", li_lohnsteuer: "− Jövedelemadó (Lohnsteuer)", li_sv_empr: "Munkáltatói társadalombiztosítás", li_db: "Munkáltatói hozzájárulás (DB / FLAF)", li_dz: "Pótlék (DZ)", li_kommunal: "Helyi adó (Kommunalsteuer)",
     li_inss: "− INSS (társadalombiztosítás)", li_irrf: "− Jövedelemadó (IRRF)", li_empr_inss: "Munkáltatói INSS", li_rat: "RAT / baleseti biztosítás", li_sistemas: "Sistema S / harmadik felek",
+    li_ekho_emp: "− EKHO (magánszemély 15%)", li_ekho_empr: "EKHO (kifizetői)", li_benefits_emp: "Juttatások (kedvezményes érték)", li_total_value: "Teljes érték a munkavállalónak",
+    card_benefits: "Juttatások", p_addbenefit: "+ Hozzáadás", p_amount: "Összeg / év", benefits_note: "Tipikus helyi béren kívüli juttatások. Összeg = éves érték az ország pénznemében; közteher = munkáltatói teher felül; „nettó” = a munkavállaló megkapja az értéket. Mind szerkeszthető.", ben_net: "nettó",
+    pkg_hu_ekho: "EKHO adózás (egyszerűsített, egykulcsos)", p_hu_ekho_emp: "EKHO — magánszemély", p_hu_ekho_empr: "EKHO — kifizető (munkáltató)",
     catchup_note: "A jelölt {age} éves — jogosult lehet <b>401(k) felzárkóztató hozzájárulásra</b>. Érdemes magasabb befizetést kínálni.",
     u_hr: "óra", u_days: "nap", u_hrs: "óra", u_hours: "óra", u_years: "év", u_children: "gyermek", no_children: "Nincs gyermek", u_candidates: "jelölt", u_generations: "mentett generálás",
     sub_rate_note: "Fedezi a következőt: {basis} ({amount}), {days} számlázható napra elosztva.",
@@ -921,7 +994,7 @@ const I18N = {
 function setLang(lang) {
   state.lang = (lang === "hu") ? "hu" : "en";
   $("langSel").value = state.lang;
-  saveState(); applyI18n(); applyCountryUI(); applyCurrencyUI(); renderHealthPlansParams(); renderCandidates(); renderPlaceholders(); renderAll();
+  saveState(); applyI18n(); applyCountryUI(); applyCurrencyUI(); renderHealthPlansParams(); renderBenefits(); renderCandidates(); renderPlaceholders(); renderAll();
 }
 function show(sel, on) { const el = document.querySelector(sel); if (el) el.style.display = on ? "" : "none"; }
 function buildCountrySelect() {
@@ -936,7 +1009,7 @@ function setCountry(cc) {
   state.period = PERIOD_DEFAULT[cc] || "annual";
   reexpress(oldCurr, oldPeriod);
   $("countrySel").value = cc;
-  saveState(); hydrateInputs(); applyCountryUI(); applyCurrencyUI(); renderAll();
+  saveState(); hydrateInputs(); applyCountryUI(); applyCurrencyUI(); renderBenefits(); renderAll();
   toast(COUNTRIES[cc].flag + " " + COUNTRIES[cc].name + " · " + state.curr, "ok");
 }
 function setCurrency(iso) {
@@ -991,9 +1064,10 @@ const DEFAULTS = {
   // package
   baseSalary: 120000, bonusValue: 10, bonusType: "pct", emp401kPct: 6,
   includeHealth: true, healthPlanIndex: 1, healthTier: "individual",
-  huPitExempt: false, brInclude13: true,
+  huPitExempt: false, brInclude13: true, huEkho: false,
+  benefits: JSON.parse(JSON.stringify(DEFAULT_BENEFITS)),
   // country-specific parameters (2025 approximate defaults; all editable)
-  huP: { pitRate: 15, empContrib: 18.5, employerContrib: 13, famAllow1: 66670, famAllow2: 133330, famAllow3: 220000, otherEmployer: 0 },
+  huP: { pitRate: 15, empContrib: 18.5, employerContrib: 13, famAllow1: 66670, famAllow2: 133330, famAllow3: 220000, otherEmployer: 0, ekhoEmp: 15, ekhoEmployer: 0 },
   atP: { empSV: 18.07, empSVcap: 77400, employerSV: 20.98, db: 3.7, dz: 0.36, kommunal: 3.0, otherEmployer: 0 },
   brP: { employerINSS: 20, rat: 2, sistemaS: 5.8, fgts: 8 },
   // parameters — payroll taxes
@@ -1030,6 +1104,8 @@ function loadState() {
       s.healthPlans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
     // deep-merge nested country param objects so new keys get defaults
     for (const k of ["huP", "atP", "brP"]) s[k] = Object.assign({}, DEFAULTS[k], s[k] || {});
+    if (!s.benefits || typeof s.benefits !== "object") s.benefits = JSON.parse(JSON.stringify(DEFAULT_BENEFITS));
+    for (const cc of Object.keys(DEFAULT_BENEFITS)) if (!Array.isArray(s.benefits[cc])) s.benefits[cc] = JSON.parse(JSON.stringify(DEFAULT_BENEFITS[cc]));
     if (!COUNTRIES[s.country]) s.country = "US";
     if (s.lang !== "hu") s.lang = "en";
     if (SUPPORTED_CURR.indexOf(s.curr) < 0) s.curr = COUNTRIES[s.country].currency;
@@ -1100,10 +1176,33 @@ function calc() {
   const baseAnnualCurr = (+state.baseSalary || 0) * (state.period === "monthly" ? 12 : 1);
   const base = conv(baseAnnualCurr, state.curr, native);
   const bonus = state.bonusType === "pct" ? base * (+state.bonusValue || 0) / 100 : conv(+state.bonusValue || 0, state.curr, native);
-  if (cc === "HU") return calcHU(base, bonus);
-  if (cc === "AT") return calcAT(base, bonus);
-  if (cc === "BR") return calcBR(base, bonus);
-  return calcUS(base, bonus);
+  let res;
+  if (cc === "HU") res = calcHU(base, bonus);
+  else if (cc === "AT") res = calcAT(base, bonus);
+  else if (cc === "BR") res = calcBR(base, bonus);
+  else res = calcUS(base, bonus);
+  return applyBenefits(res);
+}
+function benName(b) { return (state.lang === "hu" ? (b.name_hu || b.name) : b.name) || ""; }
+function applyBenefits(res) {
+  const list = (state.benefits[res.cc] || []).filter(b => b.on && (+b.amount));
+  if (!list.length) return res;
+  let empCost = 0, toEmp = 0;
+  const total = res.employerLines.pop();
+  for (const b of list) {
+    const c = (+b.amount) * (1 + (+b.levy || 0) / 100);
+    empCost += c; if (b.toEmp) toEmp += (+b.amount);
+    res.employerLines.push({ l: "+ " + benName(b), v: c, k: "add" });
+  }
+  res.fullCost += empCost; total.v = res.fullCost; res.employerLines.push(total);
+  res.segs.emp += empCost;
+  if (toEmp > 0) {
+    const net = res.employeeLines.pop(); net.k = "subtotal"; res.employeeLines.push(net);
+    res.employeeLines.push({ l: "+ " + t("li_benefits_emp"), v: toEmp, k: "add" });
+    res.employeeLines.push({ l: t("li_total_value"), v: res.net + toEmp, k: "total" });
+  }
+  res.extra.benefitsEmployer = empCost; res.extra.benefitsToEmp = toEmp;
+  return res;
 }
 
 function calcUS(base, bonus) {
@@ -1169,36 +1268,52 @@ function calcUS(base, bonus) {
 function calcHU(base, bonus) {
   const s = state, p = s.huP;
   const gross = base + bonus;
-  const n = +s.children || 0;
-  let monthlyRed = 0;
-  if (n === 1) monthlyRed = +p.famAllow1 || 0;
-  else if (n === 2) monthlyRed = (+p.famAllow2 || 0) * 2;
-  else if (n >= 3) monthlyRed = (+p.famAllow3 || 0) * n;
-  const annualRed = Math.min(gross, monthlyRed * 12);
-  const pitBase = s.huPitExempt ? 0 : Math.max(0, gross - annualRed);
-  const pit = pitBase * (+p.pitRate || 0) / 100;
-  const tb = gross * (+p.empContrib || 0) / 100;
-  const net = gross - pit - tb;
-  const szocho = gross * (+p.employerContrib || 0) / 100;
   const other = +p.otherEmployer || 0;
+  let net, eLines, segTax, szocho;
+  if (s.huEkho) {
+    const ekho = gross * (+p.ekhoEmp || 15) / 100;
+    net = gross - ekho;
+    szocho = gross * (+p.ekhoEmployer || 0) / 100;
+    segTax = ekho;
+    eLines = [
+      { l: t("li_base"), v: base, k: "add" },
+      { l: t("li_bonus"), v: bonus, k: "add" },
+      { l: t("li_gross"), v: gross, k: "subtotal" },
+      { l: t("li_ekho_emp"), v: ekho, k: "sub" },
+      { l: t("li_net"), v: net, k: "total" }
+    ];
+  } else {
+    const n = +s.children || 0;
+    let monthlyRed = 0;
+    if (n === 1) monthlyRed = +p.famAllow1 || 0;
+    else if (n === 2) monthlyRed = (+p.famAllow2 || 0) * 2;
+    else if (n >= 3) monthlyRed = (+p.famAllow3 || 0) * n;
+    const annualRed = Math.min(gross, monthlyRed * 12);
+    const pitBase = s.huPitExempt ? 0 : Math.max(0, gross - annualRed);
+    const pit = pitBase * (+p.pitRate || 0) / 100;
+    const tb = gross * (+p.empContrib || 0) / 100;
+    net = gross - pit - tb;
+    szocho = gross * (+p.employerContrib || 0) / 100;
+    segTax = pit + tb;
+    eLines = [
+      { l: t("li_base"), v: base, k: "add" },
+      { l: t("li_bonus"), v: bonus, k: "add" },
+      { l: t("li_gross"), v: gross, k: "subtotal" },
+      { l: t("li_pit_hu") + (s.huPitExempt ? " — " + t("exempt") : (annualRed > 0 ? " — " + t("after_famallow") : "")), v: pit, k: "sub" },
+      { l: t("li_tb_hu"), v: tb, k: "sub" },
+      { l: t("li_net"), v: net, k: "total" }
+    ];
+  }
   const empAddOns = szocho + other;
   const fullCost = gross + empAddOns;
-  const eLines = [
-    { l: t("li_base"), v: base, k: "add" },
-    { l: t("li_bonus"), v: bonus, k: "add" },
-    { l: t("li_gross"), v: gross, k: "subtotal" },
-    { l: t("li_pit_hu") + (s.huPitExempt ? " — " + t("exempt") : (annualRed > 0 ? " — " + t("after_famallow") : "")), v: pit, k: "sub" },
-    { l: t("li_tb_hu"), v: tb, k: "sub" },
-    { l: t("li_net"), v: net, k: "total" }
-  ];
   const rLines = [
     { l: t("li_gross_comp"), v: gross, k: "add" },
-    { l: "+ " + t("li_szocho"), v: szocho, k: "add" },
+    { l: "+ " + (s.huEkho ? t("li_ekho_empr") : t("li_szocho")), v: szocho, k: "add" },
     { l: "+ " + t("li_other_empr"), v: other, k: "add" },
     { l: t("li_fullcost"), v: fullCost, k: "total" }
   ];
   return stdResult("HU", base, bonus, gross, net, fullCost, eLines, rLines,
-    { net, tax: pit + tb, ded: 0, emp: empAddOns }, { famAllow: annualRed });
+    { net, tax: segTax, ded: 0, emp: empAddOns }, {});
 }
 
 function calcAT(base, bonus) {
@@ -1364,6 +1479,21 @@ function refreshHealthSelect() {
   sel.value = state.healthPlanIndex;
 }
 
+/* ---------- Benefits editor ---------- */
+function renderBenefits() {
+  const cc = state.country, list = state.benefits[cc] || [], sym = COUNTRIES[cc].symbol;
+  $("benCurNote").textContent = "(" + COUNTRIES[cc].currency + ")";
+  $("benefitsList").innerHTML = list.map((b, i) => `
+    <div class="ben-row" data-i="${i}">
+      <input type="checkbox" data-f="on" ${b.on ? "checked" : ""} />
+      <input type="text" data-f="name" value="${escAttr(benName(b))}" />
+      <div class="inline"><span class="suffix">${sym}</span><input type="number" data-f="amount" value="${b.amount}" /></div>
+      <div class="inline"><input type="number" data-f="levy" value="${b.levy}" /><span class="suffix">%</span></div>
+      <label class="ben-toemp"><input type="checkbox" data-f="toEmp" ${b.toEmp ? "checked" : ""} /></label>
+      <button class="icon-btn del" data-i="${i}" title="✕">✕</button>
+    </div>`).join("");
+}
+
 /* ---------- Candidates & history ---------- */
 function candidateInfo() {
   return {
@@ -1460,6 +1590,9 @@ function loadHistoryEntry(cid, hid) {
   state = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), h.snapshot);
   if (!Array.isArray(state.healthPlans) || !state.healthPlans.length)
     state.healthPlans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+  for (const k of ["huP", "atP", "brP"]) state[k] = Object.assign({}, DEFAULTS[k], state[k] || {});
+  if (!state.benefits || typeof state.benefits !== "object") state.benefits = JSON.parse(JSON.stringify(DEFAULT_BENEFITS));
+  for (const cc of Object.keys(DEFAULT_BENEFITS)) if (!Array.isArray(state.benefits[cc])) state.benefits[cc] = JSON.parse(JSON.stringify(DEFAULT_BENEFITS[cc]));
   state.proposalText = h.proposalText;
   saveState();
   hydrateInputs();
@@ -1468,6 +1601,7 @@ function loadHistoryEntry(cid, hid) {
   applyCurrencyUI();
   renderHealthPlansParams();
   refreshHealthSelect();
+  renderBenefits();
   renderAll();
   switchTab("proposal");
   toast("Loaded snapshot — package, parameters and proposal restored.", "ok");
@@ -1792,6 +1926,7 @@ const BINDINGS = [
   ["healthTier", "healthTier", "str"],
   ["huPitExempt", "huPitExempt", "bool"],
   ["brInclude13", "brInclude13", "bool"],
+  ["huEkho", "huEkho", "bool"],
   ["p_ssRate", "ssRate", "num"], ["p_ssWageBase", "ssWageBase", "num"],
   ["p_medRate", "medRate", "num"], ["p_addlMed", "addlMed", "num"], ["p_addlMedThresh", "addlMedThresh", "num"],
   ["p_futaRate", "futaRate", "num"], ["p_futaWageBase", "futaWageBase", "num"],
@@ -1883,6 +2018,28 @@ function bindInputs() {
     saveState(); renderHealthPlansParams(); refreshHealthSelect(); renderAll();
   });
 
+  // Benefits editor delegation
+  const benHandler = e => {
+    const row = e.target.closest(".ben-row"); if (!row) return;
+    const i = +row.dataset.i, f = e.target.dataset.f, arr = state.benefits[state.country];
+    if (f == null || !arr[i]) return;
+    if (f === "on" || f === "toEmp") arr[i][f] = e.target.checked;
+    else if (f === "name") { if (state.lang === "hu") arr[i].name_hu = e.target.value; else arr[i].name = e.target.value; }
+    else arr[i][f] = e.target.value === "" ? 0 : +e.target.value;
+    saveState(); renderAll();
+  };
+  $("benefitsList").addEventListener("input", benHandler);
+  $("benefitsList").addEventListener("change", benHandler);
+  $("benefitsList").addEventListener("click", e => {
+    const del = e.target.closest(".del"); if (!del) return;
+    state.benefits[state.country].splice(+del.dataset.i, 1);
+    saveState(); renderBenefits(); renderAll();
+  });
+  $("addBenefitBtn").addEventListener("click", () => {
+    state.benefits[state.country].push({ key: "c" + uid(), name: "New benefit", name_hu: "Új juttatás", amount: 0, levy: 0, toEmp: true, on: true });
+    saveState(); renderBenefits(); renderAll();
+  });
+
   // Candidate list delegation
   $("candidatesList").addEventListener("click", e => {
     const btn = e.target.closest("button[data-act]"); if (!btn) return;
@@ -1930,7 +2087,7 @@ $("resetBtn").addEventListener("click", () => {
   if (!confirm("Reset all inputs and parameters to default US values? (Saved candidates and API key are kept.)")) return;
   state = JSON.parse(JSON.stringify(DEFAULTS));
   state.proposalText = defaultTemplate();
-  saveState(); buildCountrySelect(); buildCurrSelect(); hydrateInputs(); applyI18n(); applyCountryUI(); applyCurrencyUI(); renderHealthPlansParams(); refreshHealthSelect(); renderCandidates(); renderAll();
+  saveState(); buildCountrySelect(); buildCurrSelect(); hydrateInputs(); applyI18n(); applyCountryUI(); applyCurrencyUI(); renderHealthPlansParams(); refreshHealthSelect(); renderBenefits(); renderCandidates(); renderAll();
   toast("Reset to defaults", "ok");
 });
 $("fillTemplateBtn").addEventListener("click", () => {
@@ -1972,6 +2129,7 @@ applyCountryUI();
 applyCurrencyUI();
 renderHealthPlansParams();
 refreshHealthSelect();
+renderBenefits();
 renderBracketDump();
 renderPlaceholders();
 renderCandidates();
