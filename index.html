@@ -207,12 +207,17 @@
 <body>
 <header>
   <div>
-    <h1>US Compensation Package Calculator</h1>
-    <div class="sub">Net · Gross · Full company cost · Subcontractor rate · Candidates &amp; history · Proposals</div>
+    <h1 data-i18n="app_title">Compensation Package Calculator</h1>
+    <div class="sub" data-i18n="app_sub">Net · Gross · Full company cost · Subcontractor rate · Candidates &amp; history · Proposals · Multi-country</div>
   </div>
   <div class="toolbar" style="margin:0">
+    <select id="countrySel" style="width:auto" title="Country"></select>
+    <select id="langSel" style="width:auto" title="Language">
+      <option value="en">🇬🇧 English</option>
+      <option value="hu">🇭🇺 Magyar</option>
+    </select>
     <button class="iconbtn" id="helpBtn" title="About this app">?</button>
-    <button class="btn ghost" id="resetBtn">Reset defaults</button>
+    <button class="btn ghost" id="resetBtn" data-i18n="btn_reset">Reset defaults</button>
     <span class="muted" id="savedNote" style="font-size:12px"></span>
   </div>
 </header>
@@ -220,30 +225,30 @@
 <div class="overlay" id="welcome">
   <div class="modal">
     <div class="modal-h">
-      <h2>👋 Welcome to the Compensation Package Calculator</h2>
-      <p>Model US compensation offers, derive contractor rates, and draft proposals — all in your browser.</p>
+      <h2 data-i18n="w_title">👋 Welcome to the Compensation Package Calculator</h2>
+      <p data-i18n="w_sub">Model compensation offers across the US, Hungary, Austria and Brazil — all in your browser.</p>
     </div>
     <div class="modal-b">
-      <div class="feat"><div class="ic">💸</div><div class="tx"><b>Compensation</b><div>Enter a candidate &amp; package — see estimated employee net, gross, and fully-loaded company cost.</div></div></div>
-      <div class="feat"><div class="ic">⏱️</div><div class="tx"><b>Subcontractor rate</b><div>Turn any package into an hourly rate, with unpaid time-off folded in.</div></div></div>
-      <div class="feat"><div class="ic">👥</div><div class="tx"><b>Candidates &amp; history</b><div>Save each generation per candidate; reload, export, or delete past snapshots.</div></div></div>
-      <div class="feat"><div class="ic">📄</div><div class="tx"><b>Proposals</b><div>Edit a Markdown template with live numbers and export to Markdown, HTML, or PDF. Optional AI drafting.</div></div></div>
-      <div class="feat"><div class="ic">🔒</div><div class="tx"><b>Private by design</b><div>Everything — inputs, candidates, and any API key — stays in this browser. Nothing is uploaded.</div></div></div>
+      <div class="feat"><div class="ic">💸</div><div class="tx"><b data-i18n="w_f1t">Compensation</b><div data-i18n="w_f1d">Enter a candidate &amp; package — see estimated employee net, gross, and fully-loaded company cost.</div></div></div>
+      <div class="feat"><div class="ic">⏱️</div><div class="tx"><b data-i18n="w_f2t">Subcontractor rate</b><div data-i18n="w_f2d">Turn any package into an hourly rate, with unpaid time-off folded in.</div></div></div>
+      <div class="feat"><div class="ic">👥</div><div class="tx"><b data-i18n="w_f3t">Candidates &amp; history</b><div data-i18n="w_f3d">Save each generation per candidate; reload, export, or delete past snapshots.</div></div></div>
+      <div class="feat"><div class="ic">📄</div><div class="tx"><b data-i18n="w_f4t">Proposals</b><div data-i18n="w_f4d">Edit a template with live numbers and export to Markdown, HTML, or PDF. Optional AI drafting.</div></div></div>
+      <div class="feat"><div class="ic">🔒</div><div class="tx"><b data-i18n="w_f5t">Private by design</b><div data-i18n="w_f5d">Everything — inputs, candidates, and any API key — stays in this browser. Nothing is uploaded.</div></div></div>
     </div>
     <div class="modal-f">
-      <span class="muted" style="font-size:12px">Figures are estimates, not tax/legal advice.</span>
+      <span class="muted" style="font-size:12px" data-i18n="w_foot">Figures are estimates, not tax/legal advice.</span>
       <div class="spacer"></div>
-      <button class="btn" id="welcomeStart">Get started</button>
+      <button class="btn" id="welcomeStart" data-i18n="w_start">Get started</button>
     </div>
   </div>
 </div>
 
 <div class="tabs">
-  <button class="tab active" data-tab="calc">Compensation</button>
-  <button class="tab" data-tab="sub">Subcontractor Rate</button>
-  <button class="tab" data-tab="candidates">Candidates</button>
-  <button class="tab" data-tab="params">Parameters</button>
-  <button class="tab" data-tab="proposal">Proposal</button>
+  <button class="tab active" data-tab="calc" data-i18n="nav_calc">Compensation</button>
+  <button class="tab" data-tab="sub" data-i18n="nav_sub">Subcontractor Rate</button>
+  <button class="tab" data-tab="candidates" data-i18n="nav_candidates">Candidates</button>
+  <button class="tab" data-tab="params" data-i18n="nav_params">Parameters</button>
+  <button class="tab" data-tab="proposal" data-i18n="nav_proposal">Proposal</button>
 </div>
 
 <main>
@@ -251,77 +256,94 @@
   <section class="view active" id="view-calc">
     <div class="grid cols-2">
       <div>
+        <div id="countryNote"></div>
         <div class="card" style="margin-bottom:20px">
-          <h2>Candidate details</h2>
+          <h2 data-i18n="card_candidate">Candidate details</h2>
           <div class="field">
-            <label>Name</label>
-            <input type="text" id="candidateName" placeholder="e.g. Jane Doe — Senior Engineer" />
+            <label data-i18n="lbl_name">Name</label>
+            <input type="text" id="candidateName" />
           </div>
           <div class="grid cols-3" style="gap:12px">
-            <div class="field">
-              <label>State of residence</label>
+            <div class="field" id="fieldState">
+              <label data-i18n="lbl_state">State of residence</label>
               <select id="candidateState"></select>
               <div class="hint" id="stateRateHint"></div>
             </div>
             <div class="field">
-              <label>Age</label>
+              <label data-i18n="lbl_age">Age</label>
               <input type="number" id="candidateAge" />
             </div>
             <div class="field">
-              <label>Marital status</label>
+              <label data-i18n="lbl_marital">Marital status</label>
               <select id="maritalStatus">
-                <option value="single">Single</option>
-                <option value="married">Married</option>
+                <option value="single" data-i18n="opt_single">Single</option>
+                <option value="married" data-i18n="opt_married">Married</option>
               </select>
             </div>
             <div class="field">
-              <label>Children / dependents</label>
+              <label data-i18n="lbl_children">Children / dependents</label>
               <input type="number" id="children" />
             </div>
             <div class="field" style="grid-column: span 2">
-              <label>Notes</label>
-              <input type="text" id="candidateNotes" placeholder="Relocation, visa, prior comp…" />
+              <label data-i18n="lbl_notes">Notes</label>
+              <input type="text" id="candidateNotes" />
             </div>
           </div>
         </div>
 
         <div class="card">
-          <h2>Package elements</h2>
+          <h2 data-i18n="card_package">Package elements</h2>
           <div class="field">
-            <label>Base salary (annual, gross)</label>
-            <div class="inline"><span class="suffix">$</span><input type="number" id="baseSalary" /></div>
+            <label data-i18n="lbl_base">Base salary (annual, gross)</label>
+            <div class="inline"><span class="suffix ccsym">$</span><input type="number" id="baseSalary" /></div>
           </div>
           <div class="field">
-            <label>Annual bonus</label>
+            <label data-i18n="lbl_bonus">Annual bonus</label>
             <div class="inline">
               <input type="number" id="bonusValue" />
-              <select id="bonusType" style="max-width:120px">
-                <option value="pct">% of base</option>
-                <option value="fixed">$ fixed</option>
+              <select id="bonusType" style="max-width:140px">
+                <option value="pct" data-i18n="opt_pct">% of base</option>
+                <option value="fixed" data-i18n="opt_fixed">fixed amount</option>
               </select>
             </div>
-          </div>
-          <div class="field">
-            <label>Employee 401(k) contribution (% of base, pre-tax)</label>
-            <div class="inline"><input type="number" id="emp401kPct" /><span class="suffix">%</span></div>
-            <div class="hint">Reduces income tax, not FICA. Employer match set in Parameters.</div>
           </div>
 
-          <h3>Health insurance</h3>
-          <div class="field">
-            <label><input type="checkbox" id="includeHealth" style="width:auto;margin-right:6px" />Include employer-sponsored health plan</label>
-          </div>
-          <div class="grid cols-2" style="gap:12px">
+          <div id="pkgUs401k">
             <div class="field">
-              <label>Health plan</label>
-              <select id="healthPlanIndex"></select>
+              <label data-i18n="lbl_401k">Employee 401(k) contribution (% of base, pre-tax)</label>
+              <div class="inline"><input type="number" id="emp401kPct" /><span class="suffix">%</span></div>
+              <div class="hint" data-i18n="hint_401k">Reduces income tax, not FICA. Employer match set in Parameters.</div>
             </div>
+          </div>
+
+          <div id="pkgUsHealth">
+            <h3 data-i18n="h3_health">Health insurance</h3>
             <div class="field">
-              <label>Coverage tier</label>
-              <select id="healthTier">
-                <option value="individual">Employee only</option>
-                <option value="family">Employee + family</option>
-              </select>
+              <label><input type="checkbox" id="includeHealth" style="width:auto;margin-right:6px" /><span data-i18n="chk_health">Include employer-sponsored health plan</span></label>
+            </div>
+            <div class="grid cols-2" style="gap:12px">
+              <div class="field">
+                <label data-i18n="lbl_healthplan">Health plan</label>
+                <select id="healthPlanIndex"></select>
+              </div>
+              <div class="field">
+                <label data-i18n="lbl_tier">Coverage tier</label>
+                <select id="healthTier">
+                  <option value="individual" data-i18n="opt_tier_ind">Employee only</option>
+                  <option value="family" data-i18n="opt_tier_fam">Employee + family</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="pkgHu" style="display:none">
+            <div class="field" style="margin-top:6px">
+              <label><input type="checkbox" id="huPitExempt" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_exempt">Personal income tax exemption (under 25 / mother)</span></label>
+            </div>
+          </div>
+          <div id="pkgBr" style="display:none">
+            <div class="field" style="margin-top:6px">
+              <label><input type="checkbox" id="brInclude13" style="width:auto;margin-right:6px" /><span data-i18n="pkg_br_13th">Include 13th salary (décimo terceiro)</span></label>
             </div>
           </div>
         </div>
@@ -329,38 +351,38 @@
 
       <div class="card">
         <h2>
-          <span>Results <span class="pill" id="resBasePill"></span></span>
-          <button class="btn ghost sm" id="saveHistBtn1">💾 Save to history</button>
+          <span><span data-i18n="card_results">Results</span> <span class="pill" id="resBasePill"></span></span>
+          <button class="btn ghost sm" id="saveHistBtn1" data-i18n="btn_savehist">💾 Save to history</button>
         </h2>
         <div class="grid cols-3" style="gap:12px;margin-bottom:6px">
           <div class="stat">
-            <div class="lbl">Employee net</div>
+            <div class="lbl" data-i18n="stat_net">Employee net</div>
             <div class="big green" id="netOut">$0</div>
           </div>
           <div class="stat">
-            <div class="lbl">Gross comp</div>
+            <div class="lbl" data-i18n="stat_gross">Gross comp</div>
             <div class="big blue" id="grossOut">$0</div>
           </div>
           <div class="stat">
-            <div class="lbl">Full company cost</div>
+            <div class="lbl" data-i18n="stat_full">Full company cost</div>
             <div class="big amber" id="fullOut">$0</div>
           </div>
         </div>
 
         <div class="bar" id="costBar"></div>
         <div class="legend">
-          <span><i style="background:var(--green)"></i>Net</span>
-          <span><i style="background:var(--accent)"></i>Employee taxes</span>
-          <span><i style="background:var(--purple)"></i>Deductions</span>
-          <span><i style="background:var(--amber)"></i>Employer add-ons</span>
+          <span><i style="background:var(--green)"></i><span data-i18n="leg_net">Net</span></span>
+          <span><i style="background:var(--accent)"></i><span data-i18n="leg_tax">Employee taxes</span></span>
+          <span><i style="background:var(--purple)"></i><span data-i18n="leg_ded">Deductions</span></span>
+          <span><i style="background:var(--amber)"></i><span data-i18n="leg_emp">Employer add-ons</span></span>
         </div>
 
         <div id="ageNote"></div>
 
-        <h3>Employee side</h3>
+        <h3 data-i18n="h3_emp_side">Employee side</h3>
         <div id="employeeBreakdown"></div>
 
-        <h3>Employer side (full cost)</h3>
+        <h3 data-i18n="h3_empr_side">Employer side (full cost)</h3>
         <div id="employerBreakdown"></div>
       </div>
     </div>
@@ -370,65 +392,61 @@
   <section class="view" id="view-sub">
     <div class="grid cols-2">
       <div class="card">
-        <h2>Derive subcontractor hourly rate</h2>
-        <p class="muted" style="margin-top:0">
+        <h2 data-i18n="sub_title">Derive subcontractor hourly rate</h2>
+        <p class="muted" style="margin-top:0" data-i18n="sub_intro">
           A contractor gets no paid time off, so the days an employee would take off must be
-          earned across <b>fewer billable days</b> — which raises the rate. Use the adjustment field
-          to deviate from the computed rate.
+          earned across fewer billable days — which raises the rate.
         </p>
         <div class="field">
-          <label>Annual package to cover (basis)</label>
+          <label data-i18n="lbl_basis">Annual package to cover (basis)</label>
           <select id="subBasis">
-            <option value="full">Full company cost (apples-to-apples)</option>
-            <option value="gross">Gross compensation</option>
-            <option value="net">Employee net</option>
-            <option value="custom">Custom amount</option>
+            <option value="full" data-i18n="opt_basis_full">Full company cost (apples-to-apples)</option>
+            <option value="gross" data-i18n="opt_basis_gross">Gross compensation</option>
+            <option value="net" data-i18n="opt_basis_net">Employee net</option>
+            <option value="custom" data-i18n="opt_basis_custom">Custom amount</option>
           </select>
         </div>
         <div class="field" id="customBasisField" style="display:none">
-          <label>Custom annual amount</label>
-          <div class="inline"><span class="suffix">$</span><input type="number" id="subCustomAmount" /></div>
+          <label data-i18n="lbl_custom_amt">Custom annual amount</label>
+          <div class="inline"><span class="suffix ccsym">$</span><input type="number" id="subCustomAmount" /></div>
         </div>
 
-        <h3>Working time</h3>
+        <h3 data-i18n="h3_worktime">Working time</h3>
         <div class="grid cols-2" style="gap:12px">
-          <div class="field"><label>Work days / year (base)</label><input type="number" id="subWorkDays" /><div class="hint">260 = 52 weeks × 5 days</div></div>
-          <div class="field"><label>Hours / day</label><input type="number" id="subHoursDay" /></div>
-          <div class="field"><label>Paid holidays</label><input type="number" id="subHolidays" /></div>
-          <div class="field"><label>Vacation / PTO days</label><input type="number" id="subPto" /></div>
-          <div class="field"><label>Sick days</label><input type="number" id="subSick" /></div>
-          <div class="field"><label>Non-billable buffer days</label><input type="number" id="subBuffer" /><div class="hint">Admin, ramp-up, bench</div></div>
+          <div class="field"><label data-i18n="lbl_workdays">Work days / year (base)</label><input type="number" id="subWorkDays" /><div class="hint" data-i18n="hint_workdays">260 = 52 weeks × 5 days</div></div>
+          <div class="field"><label data-i18n="lbl_hoursday">Hours / day</label><input type="number" id="subHoursDay" /></div>
+          <div class="field"><label data-i18n="lbl_holidays">Paid holidays</label><input type="number" id="subHolidays" /></div>
+          <div class="field"><label data-i18n="lbl_pto">Vacation / PTO days</label><input type="number" id="subPto" /></div>
+          <div class="field"><label data-i18n="lbl_sick">Sick days</label><input type="number" id="subSick" /></div>
+          <div class="field"><label data-i18n="lbl_buffer">Non-billable buffer days</label><input type="number" id="subBuffer" /><div class="hint" data-i18n="hint_buffer">Admin, ramp-up, bench</div></div>
         </div>
 
         <div class="field">
-          <label>Rate adjustment (deviate from computed)</label>
+          <label data-i18n="lbl_adjust">Rate adjustment (deviate from computed)</label>
           <div class="inline"><input type="number" id="subAdjust" /><span class="suffix">%</span></div>
-          <div class="hint">e.g. +15% contractor premium, or −10% to discount. 0 = exact computed rate.</div>
+          <div class="hint" data-i18n="hint_adjust">e.g. +15% contractor premium, or −10% to discount. 0 = exact computed rate.</div>
         </div>
       </div>
 
       <div class="card">
-        <h2>Result</h2>
+        <h2 data-i18n="sub_result">Result</h2>
         <div class="stat" style="margin-bottom:14px">
-          <div class="lbl">Suggested hourly rate</div>
+          <div class="lbl" data-i18n="sub_suggest">Suggested hourly rate</div>
           <div class="big amber" id="subRateOut">$0</div>
           <div class="muted" style="font-size:12px" id="subRateNote"></div>
         </div>
 
-        <div class="row"><span class="label">Package basis</span><span class="val" id="subBasisOut">$0</span></div>
-        <div class="row"><span class="label">Days off (not billable)</span><span class="val" id="subDaysOffOut">0</span></div>
-        <div class="row"><span class="label">Billable days / year</span><span class="val" id="subBillDaysOut">0</span></div>
-        <div class="row"><span class="label">Billable hours / year</span><span class="val" id="subBillHrsOut">0</span></div>
-        <div class="row"><span class="label">Computed base rate</span><span class="val" id="subBaseRateOut">$0</span></div>
-        <div class="row"><span class="label">Adjustment</span><span class="val" id="subAdjOut">0%</span></div>
-        <div class="row total"><span class="label">Hourly rate</span><span class="val" id="subRateOut2">$0</span></div>
-        <div class="row"><span class="label">Day rate (× hrs/day)</span><span class="val" id="subDayRateOut">$0</span></div>
-        <div class="row"><span class="label">Implied annual (rate × billable hrs)</span><span class="val" id="subAnnualOut">$0</span></div>
+        <div class="row"><span class="label" data-i18n="row_basis">Package basis</span><span class="val" id="subBasisOut">$0</span></div>
+        <div class="row"><span class="label" data-i18n="row_daysoff">Days off (not billable)</span><span class="val" id="subDaysOffOut">0</span></div>
+        <div class="row"><span class="label" data-i18n="row_billdays">Billable days / year</span><span class="val" id="subBillDaysOut">0</span></div>
+        <div class="row"><span class="label" data-i18n="row_billhrs">Billable hours / year</span><span class="val" id="subBillHrsOut">0</span></div>
+        <div class="row"><span class="label" data-i18n="row_baserate">Computed base rate</span><span class="val" id="subBaseRateOut">$0</span></div>
+        <div class="row"><span class="label" data-i18n="row_adjust">Adjustment</span><span class="val" id="subAdjOut">0%</span></div>
+        <div class="row total"><span class="label" data-i18n="row_hourly">Hourly rate</span><span class="val" id="subRateOut2">$0</span></div>
+        <div class="row"><span class="label" data-i18n="row_dayrate">Day rate (× hrs/day)</span><span class="val" id="subDayRateOut">$0</span></div>
+        <div class="row"><span class="label" data-i18n="row_annual">Implied annual (rate × billable hrs)</span><span class="val" id="subAnnualOut">$0</span></div>
 
-        <div class="note" style="margin-top:16px">
-          The contractor must bill <span id="subEffNote"></span> to match the chosen package basis,
-          because <b id="subDaysOffNote">0</b> paid-off days an employee would get are now unpaid.
-        </div>
+        <div class="note" style="margin-top:16px" id="subFootNote"></div>
       </div>
     </div>
   </section>
@@ -436,7 +454,7 @@
   <!-- ============ CANDIDATES ============ -->
   <section class="view" id="view-candidates">
     <div class="toolbar">
-      <h2 style="margin:0;font-size:16px">Saved candidates &amp; proposal history</h2>
+      <h2 style="margin:0;font-size:16px" data-i18n="cand_title">Saved candidates &amp; proposal history</h2>
       <div class="spacer"></div>
       <span class="muted" id="candCount" style="font-size:12px"></span>
     </div>
@@ -445,28 +463,29 @@
 
   <!-- ============ PARAMETERS ============ -->
   <section class="view" id="view-params">
+   <div id="params-US">
     <div class="card" style="margin-bottom:20px">
       <h2>
-        <span>Healthcare packages</span>
-        <button class="btn ghost sm" id="addPlanBtn">+ Add plan</button>
+        <span data-i18n="p_title_health">Healthcare packages</span>
+        <button class="btn ghost sm" id="addPlanBtn" data-i18n="p_addplan">+ Add plan</button>
       </h2>
       <div class="plan-head">
-        <div>Plan name</div><div>Individual premium / yr</div><div>Family premium / yr</div><div>Employer share</div><div></div>
+        <div data-i18n="p_plan_name">Plan name</div><div data-i18n="p_prem_ind">Individual premium / yr</div><div data-i18n="p_prem_fam">Family premium / yr</div><div data-i18n="p_empshare">Employer share</div><div></div>
       </div>
       <div id="healthPlansList"></div>
       <div class="field" style="margin-top:12px;max-width:340px">
-        <label>Premiums are pre-tax (Section 125)</label>
+        <label data-i18n="p_pretax">Premiums are pre-tax (Section 125)</label>
         <select id="p_healthPretax">
-          <option value="yes">Yes (reduces income tax + FICA)</option>
-          <option value="no">No</option>
+          <option value="yes" data-i18n="p_pretax_yes">Yes (reduces income tax + FICA)</option>
+          <option value="no" data-i18n="p_pretax_no">No</option>
         </select>
       </div>
-      <div class="note">Add as many plans/tiers as you like. Each candidate's package picks a plan and a coverage tier on the Compensation tab.</div>
+      <div class="note" data-i18n="p_health_note">Add as many plans/tiers as you like. Each candidate's package picks a plan and a coverage tier on the Compensation tab.</div>
     </div>
 
     <div class="grid cols-3">
       <div class="card">
-        <h2>Employer payroll taxes</h2>
+        <h2 data-i18n="p_payroll">Employer payroll taxes</h2>
         <div class="field"><label>Social Security rate (employer &amp; employee each)</label>
           <div class="inline"><input type="number" id="p_ssRate" step="0.01" /><span class="suffix">%</span></div></div>
         <div class="field"><label>Social Security wage base</label>
@@ -493,7 +512,7 @@
       </div>
 
       <div class="card">
-        <h2>401(k) match</h2>
+        <h2 data-i18n="p_401k">401(k) match</h2>
         <div class="field"><label>Match rate</label>
           <div class="inline"><input type="number" id="p_matchRate" step="1" /><span class="suffix">%</span></div>
           <div class="hint">% of the employee's contribution the company matches</div></div>
@@ -506,7 +525,7 @@
       </div>
 
       <div class="card">
-        <h2>Income tax assumptions</h2>
+        <h2 data-i18n="p_incometax">Income tax assumptions</h2>
         <div class="field"><label>Standard deduction — Single</label>
           <div class="inline"><span class="suffix">$</span><input type="number" id="p_stdSingle" /></div></div>
         <div class="field"><label>Standard deduction — MFJ</label>
@@ -524,33 +543,94 @@
         </details>
       </div>
     </div>
+   </div><!-- /params-US -->
+
+   <div id="params-HU" style="display:none">
+    <div class="card" style="max-width:520px">
+      <h2 data-i18n="p_hu_title">Hungary — taxes & contributions</h2>
+      <div class="field"><label data-i18n="p_hu_pit">Personal income tax (SZJA)</label>
+        <div class="inline"><input type="number" step="0.1" data-cp="huP" data-k="pitRate" /><span class="suffix">%</span></div></div>
+      <div class="field"><label data-i18n="p_hu_tb">Employee social contribution (TB)</label>
+        <div class="inline"><input type="number" step="0.1" data-cp="huP" data-k="empContrib" /><span class="suffix">%</span></div></div>
+      <div class="field"><label data-i18n="p_hu_szocho">Employer social contribution tax (szocho)</label>
+        <div class="inline"><input type="number" step="0.1" data-cp="huP" data-k="employerContrib" /><span class="suffix">%</span></div></div>
+      <h3 data-i18n="p_hu_fam">Family allowance (monthly tax-base reduction per child)</h3>
+      <div class="grid cols-3" style="gap:12px">
+        <div class="field"><label data-i18n="p_hu_fam1">1 child</label><div class="inline"><span class="suffix">Ft</span><input type="number" data-cp="huP" data-k="famAllow1" /></div></div>
+        <div class="field"><label data-i18n="p_hu_fam2">2 children (per child)</label><div class="inline"><span class="suffix">Ft</span><input type="number" data-cp="huP" data-k="famAllow2" /></div></div>
+        <div class="field"><label data-i18n="p_hu_fam3">3+ children (per child)</label><div class="inline"><span class="suffix">Ft</span><input type="number" data-cp="huP" data-k="famAllow3" /></div></div>
+      </div>
+      <div class="field"><label data-i18n="p_hu_other">Other employer cost (fixed / yr)</label>
+        <div class="inline"><span class="suffix">Ft</span><input type="number" data-cp="huP" data-k="otherEmployer" /></div></div>
+    </div>
+   </div>
+
+   <div id="params-AT" style="display:none">
+    <div class="card" style="max-width:560px">
+      <h2 data-i18n="p_at_title">Austria — taxes & contributions</h2>
+      <div class="grid cols-2" style="gap:12px">
+        <div class="field"><label data-i18n="p_at_sv">Employee social insurance (SV)</label>
+          <div class="inline"><input type="number" step="0.01" data-cp="atP" data-k="empSV" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_at_svcap">SV annual ceiling</label>
+          <div class="inline"><span class="suffix">€</span><input type="number" data-cp="atP" data-k="empSVcap" /></div></div>
+        <div class="field"><label data-i18n="p_at_emprsv">Employer social insurance</label>
+          <div class="inline"><input type="number" step="0.01" data-cp="atP" data-k="employerSV" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_at_db">Employer contribution (DB / FLAF)</label>
+          <div class="inline"><input type="number" step="0.01" data-cp="atP" data-k="db" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_at_dz">Surcharge to DB (DZ)</label>
+          <div class="inline"><input type="number" step="0.01" data-cp="atP" data-k="dz" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_at_komm">Municipal tax (Kommunalsteuer)</label>
+          <div class="inline"><input type="number" step="0.01" data-cp="atP" data-k="kommunal" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_at_other">Other employer cost (fixed / yr)</label>
+          <div class="inline"><span class="suffix">€</span><input type="number" data-cp="atP" data-k="otherEmployer" /></div></div>
+      </div>
+      <div class="note" data-i18n="p_at_note">Income tax (Lohnsteuer) uses built-in 2025 progressive brackets. 13th/14th-month favourable taxation is not modelled (a simplification).</div>
+    </div>
+   </div>
+
+   <div id="params-BR" style="display:none">
+    <div class="card" style="max-width:520px">
+      <h2 data-i18n="p_br_title">Brazil — taxes & contributions</h2>
+      <div class="grid cols-2" style="gap:12px">
+        <div class="field"><label data-i18n="p_br_emprinss">Employer INSS</label>
+          <div class="inline"><input type="number" step="0.1" data-cp="brP" data-k="employerINSS" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_br_rat">RAT / accident insurance</label>
+          <div class="inline"><input type="number" step="0.1" data-cp="brP" data-k="rat" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_br_sistemas">Sistema S / third parties</label>
+          <div class="inline"><input type="number" step="0.1" data-cp="brP" data-k="sistemaS" /><span class="suffix">%</span></div></div>
+        <div class="field"><label data-i18n="p_br_fgts">FGTS</label>
+          <div class="inline"><input type="number" step="0.1" data-cp="brP" data-k="fgts" /><span class="suffix">%</span></div></div>
+      </div>
+      <div class="note" data-i18n="p_br_note">INSS (employee) and IRRF use built-in 2025 progressive monthly tables with the contribution ceiling. Vacation +1/3 is not separately modelled.</div>
+    </div>
+   </div>
   </section>
 
   <!-- ============ PROPOSAL ============ -->
   <section class="view" id="view-proposal">
     <div class="toolbar">
-      <button class="btn ghost" id="fillTemplateBtn">Reset template</button>
-      <button class="btn ghost" id="insertNumbersBtn">Insert live numbers</button>
-      <button class="btn ghost" id="saveHistBtn2">💾 Save to history</button>
+      <button class="btn ghost" id="fillTemplateBtn" data-i18n="btn_resettpl">Reset template</button>
+      <button class="btn ghost" id="insertNumbersBtn" data-i18n="btn_insertnum">Insert live numbers</button>
+      <button class="btn ghost" id="saveHistBtn2" data-i18n="btn_savehist">💾 Save to history</button>
       <div class="spacer"></div>
-      <button class="btn ghost" id="exportMdBtn">⬇ .md</button>
-      <button class="btn ghost" id="exportHtmlBtn">⬇ .html</button>
-      <button class="btn ghost" id="printBtn">🖨 Print / PDF</button>
-      <button class="btn ghost" id="aiSettingsBtn">AI settings</button>
-      <button class="btn" id="aiGenerateBtn">✨ Generate / polish with AI</button>
+      <button class="btn ghost" id="exportMdBtn" data-i18n="btn_md">⬇ .md</button>
+      <button class="btn ghost" id="exportHtmlBtn" data-i18n="btn_html">⬇ .html</button>
+      <button class="btn ghost" id="printBtn" data-i18n="btn_print">🖨 Print / PDF</button>
+      <button class="btn ghost" id="aiSettingsBtn" data-i18n="btn_aisettings">AI settings</button>
+      <button class="btn" id="aiGenerateBtn" data-i18n="btn_aigen">✨ Generate / polish with AI</button>
     </div>
 
     <div class="card" id="aiSettings" style="display:none;margin-bottom:16px">
-      <h2>AI settings (Anthropic Claude)</h2>
+      <h2 data-i18n="ai_title">AI settings (Anthropic Claude)</h2>
       <div id="aiBackendStatus" class="note" style="margin-bottom:12px"></div>
       <div class="grid cols-2">
         <div class="field">
-          <label>API key (stored locally in your browser only)</label>
+          <label data-i18n="ai_key_label">API key (stored locally in your browser only)</label>
           <input type="password" id="aiKey" placeholder="sk-ant-..." />
           <div class="hint">The AI draft is <b>optional</b> — the calculator and proposal editor work fully without it. To use AI, paste your own key from <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Calls go directly from your browser to api.anthropic.com; the key is saved in this browser's localStorage only and is never sent anywhere else.</div>
         </div>
         <div class="field">
-          <label>Model</label>
+          <label data-i18n="ai_model_label">Model</label>
           <select id="aiModel">
             <option value="claude-opus-4-8">Claude Opus 4.8 (most capable)</option>
             <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (balanced)</option>
@@ -559,36 +639,29 @@
         </div>
       </div>
       <div class="field">
-        <label>Instruction to the AI</label>
-        <input type="text" id="aiInstruction" placeholder="e.g. Make it warmer and emphasize growth opportunity" />
+        <label data-i18n="ai_instr_label">Instruction to the AI</label>
+        <input type="text" id="aiInstruction" />
       </div>
     </div>
 
     <div class="grid cols-2">
       <div class="card">
-        <h2>Template editor <span class="muted" style="font-size:12px;font-weight:400">— supports {{placeholders}}</span></h2>
+        <h2><span data-i18n="tpl_title">Template editor</span> <span class="muted" style="font-size:12px;font-weight:400" data-i18n="tpl_supports">— supports {{placeholders}}</span></h2>
         <textarea class="proposal" id="proposalText"></textarea>
         <details>
-          <summary>Available placeholders</summary>
+          <summary data-i18n="ph_placeholders">Available placeholders</summary>
           <div style="margin-top:8px;font-size:12px;line-height:2" class="muted" id="placeholderList"></div>
         </details>
       </div>
       <div class="card">
-        <h2>Preview</h2>
+        <h2 data-i18n="preview_title">Preview</h2>
         <div class="proposal-preview" id="proposalPreview"></div>
       </div>
     </div>
   </section>
 </main>
 
-<footer>
-  <b>Estimates only.</b> Net pay uses 2025 federal brackets, a flat effective state rate, and the standard
-  deduction — it ignores credits, local taxes, and individual elections. This tool is for offer modeling and
-  is <b>not</b> tax, legal, or financial advice. Verify figures with a qualified payroll/tax professional
-  before making or accepting an offer.
-  &nbsp;·&nbsp; <b>Your data stays on your device:</b> all inputs, candidates, and your optional API key are
-  stored only in this browser (localStorage) and are never uploaded.
-</footer>
+<footer><span id="footerText"></span></footer>
 
 <div class="toast" id="toast"></div>
 
@@ -637,13 +710,184 @@ const DEFAULT_PLANS = [
   { name: "Premium PPO",  premiumIndividual: 13000, premiumFamily: 30000, employerShare: 85 }
 ];
 
+/* ---------- Countries ---------- */
+const COUNTRIES = {
+  US: { name: "United States", flag: "🇺🇸", currency: "USD", symbol: "$",  locale: "en-US" },
+  HU: { name: "Hungary",       flag: "🇭🇺", currency: "HUF", symbol: "Ft", locale: "hu-HU" },
+  AT: { name: "Austria",       flag: "🇦🇹", currency: "EUR", symbol: "€",  locale: "de-AT" },
+  BR: { name: "Brazil",        flag: "🇧🇷", currency: "BRL", symbol: "R$", locale: "pt-BR" }
+};
+
+// Austria 2025 income tax (Lohnsteuer) annual brackets [upTo, marginal rate]
+const AT_BRACKETS = [
+  [13308, 0.00], [21617, 0.20], [35836, 0.30], [69166, 0.40],
+  [103072, 0.48], [1000000, 0.50], [Infinity, 0.55]
+];
+// Brazil 2025 INSS employee progressive bands (monthly) [upTo, rate]; ceiling 8157.41
+const BR_INSS = [[1518.00, 0.075], [2793.88, 0.09], [4190.83, 0.12], [8157.41, 0.14]];
+const BR_INSS_CEIL = 8157.41;
+// Brazil 2025 IRRF monthly [upTo, rate, deduction]
+const BR_IRRF = [
+  [2259.20, 0.0, 0], [2826.65, 0.075, 169.44], [3751.05, 0.15, 381.44],
+  [4664.68, 0.225, 662.77], [Infinity, 0.275, 896.00]
+];
+function brIRRF(baseM) { for (const [up, r, d] of BR_IRRF) if (baseM <= up) return Math.max(0, baseM * r - d); return 0; }
+
+/* ---------- Translations ---------- */
+const I18N = {
+  en: {
+    app_title: "Compensation Package Calculator", app_sub: "Net · Gross · Full company cost · Subcontractor rate · Candidates & history · Proposals · Multi-country",
+    btn_reset: "Reset defaults",
+    nav_calc: "Compensation", nav_sub: "Subcontractor Rate", nav_candidates: "Candidates", nav_params: "Parameters", nav_proposal: "Proposal",
+    card_candidate: "Candidate details", lbl_name: "Name", lbl_state: "State of residence", lbl_age: "Age", lbl_marital: "Marital status", lbl_children: "Children / dependents", lbl_notes: "Notes",
+    opt_single: "Single", opt_married: "Married",
+    card_package: "Package elements", lbl_base: "Base salary (annual, gross)", lbl_bonus: "Annual bonus", opt_pct: "% of base", opt_fixed: "fixed amount",
+    lbl_401k: "Employee 401(k) contribution (% of base, pre-tax)", hint_401k: "Reduces income tax, not FICA. Employer match set in Parameters.",
+    h3_health: "Health insurance", chk_health: "Include employer-sponsored health plan", lbl_healthplan: "Health plan", lbl_tier: "Coverage tier", opt_tier_ind: "Employee only", opt_tier_fam: "Employee + family",
+    pkg_hu_exempt: "Personal income tax exemption (under 25 / mother)", pkg_br_13th: "Include 13th salary (décimo terceiro)",
+    card_results: "Results", btn_savehist: "💾 Save to history", stat_net: "Employee net", stat_gross: "Gross comp", stat_full: "Full company cost",
+    leg_net: "Net", leg_tax: "Employee taxes", leg_ded: "Deductions", leg_emp: "Employer add-ons",
+    h3_emp_side: "Employee side", h3_empr_side: "Employer side (full cost)",
+    sub_title: "Derive subcontractor hourly rate", sub_intro: "A contractor gets no paid time off, so the days an employee would take off must be earned across fewer billable days — which raises the rate. Use the adjustment field to deviate from the computed rate.",
+    lbl_basis: "Annual package to cover (basis)", opt_basis_full: "Full company cost (apples-to-apples)", opt_basis_gross: "Gross compensation", opt_basis_net: "Employee net", opt_basis_custom: "Custom amount", lbl_custom_amt: "Custom annual amount",
+    h3_worktime: "Working time", lbl_workdays: "Work days / year (base)", hint_workdays: "260 = 52 weeks × 5 days", lbl_hoursday: "Hours / day", lbl_holidays: "Paid holidays", lbl_pto: "Vacation / PTO days", lbl_sick: "Sick days", lbl_buffer: "Non-billable buffer days", hint_buffer: "Admin, ramp-up, bench",
+    lbl_adjust: "Rate adjustment (deviate from computed)", hint_adjust: "e.g. +15% contractor premium, or −10% to discount. 0 = exact computed rate.",
+    sub_result: "Result", sub_suggest: "Suggested hourly rate",
+    row_basis: "Package basis", row_daysoff: "Days off (not billable)", row_billdays: "Billable days / year", row_billhrs: "Billable hours / year", row_baserate: "Computed base rate", row_adjust: "Adjustment", row_hourly: "Hourly rate", row_dayrate: "Day rate (× hrs/day)", row_annual: "Implied annual (rate × billable hrs)",
+    cand_title: "Saved candidates & proposal history", cand_empty: "No candidates saved yet.", cand_empty2: "Fill in a candidate on the Compensation tab, then press Save to history.",
+    btn_load: "Load", btn_export: "Export", btn_delete: "Delete", btn_delcand: "Delete candidate", no_generations: "No generations saved.",
+    hist_base: "Base", hist_gross: "Gross", hist_net: "Net", hist_cost: "Cost",
+    btn_resettpl: "Reset template", btn_insertnum: "Insert live numbers", btn_md: "⬇ .md", btn_html: "⬇ .html", btn_print: "🖨 Print / PDF", btn_aisettings: "AI settings", btn_aigen: "✨ Generate / polish with AI",
+    ai_title: "AI settings (Anthropic Claude)", ai_key_label: "API key (stored locally in your browser only)", ai_model_label: "Model", ai_instr_label: "Instruction to the AI", generating: "Generating…",
+    tpl_title: "Template editor", tpl_supports: "— supports {{placeholders}}", ph_placeholders: "Available placeholders", preview_title: "Preview",
+    // dynamic
+    li_base: "Base salary", li_bonus: "Bonus", li_gross: "Gross", li_net: "Net take-home", li_gross_comp: "Gross compensation", li_fullcost: "Full company cost",
+    li_401k_emp: "− 401(k) employee", li_health_emp: "− Health premium", li_fed: "− Federal income tax", li_state: "− State income tax", li_ss: "− Social Security", li_medicare: "− Medicare",
+    li_empr_ss: "Employer Social Security", li_empr_medicare: "Employer Medicare", li_workerscomp: "Workers' comp", li_401k_match: "401(k) match", li_health_empr: "Health (employer share)", li_other_empr: "Other employer cost",
+    li_pit_hu: "− Personal income tax (SZJA 15%)", li_tb_hu: "− Social security contribution (TB 18.5%)", li_szocho: "Social contribution tax (szocho)", exempt: "exempt", after_famallow: "after family allowance",
+    li_sv_emp: "− Social insurance (SV)", li_lohnsteuer: "− Income tax (Lohnsteuer)", li_sv_empr: "Employer social insurance", li_db: "Employer contribution (DB / FLAF)", li_dz: "Surcharge (DZ)", li_kommunal: "Municipal tax (Kommunalsteuer)",
+    li_inss: "− INSS (social security)", li_irrf: "− Income tax (IRRF)", li_empr_inss: "Employer INSS", li_rat: "RAT / accident insurance", li_sistemas: "Sistema S / third parties",
+    catchup_note: "Candidate is {age} — eligible for <b>401(k) catch-up contributions</b>. Consider a higher deferral in the offer narrative.",
+    u_hr: "hr", u_days: "days", u_hrs: "hrs", u_hours: "hours", u_years: "yrs", u_children: "children", no_children: "No children", u_candidates: "candidates", u_generations: "saved generations",
+    sub_rate_note: "Covers {basis} of {amount} across {days} billable days.",
+    sub_foot: "The contractor must bill {hrs} to match the chosen package basis, because {days} paid-off days an employee would otherwise get are now unpaid.",
+    basis_full: "full company cost", basis_gross: "gross compensation", basis_net: "employee net", basis_custom: "the custom amount",
+    of_base: "of base salary", fixed: "fixed",
+    footer_html: "<b>Estimates only.</b> Tax/contribution rates are built-in approximations for 2025 and are all editable on the Parameters tab. This tool is for offer modeling and is <b>not</b> tax, legal, or financial advice — verify figures with a qualified payroll/tax professional. &nbsp;·&nbsp; <b>Your data stays on your device:</b> all inputs, candidates, and your optional API key are stored only in this browser (localStorage) and are never uploaded.",
+    w_title: "👋 Welcome to the Compensation Package Calculator", w_sub: "Model compensation offers across the US, Hungary, Austria and Brazil — all in your browser.",
+    w_f1t: "Compensation", w_f1d: "Enter a candidate & package — see estimated employee net, gross, and fully-loaded company cost in the local currency.",
+    w_f2t: "Subcontractor rate", w_f2d: "Turn any package into an hourly rate, with unpaid time-off folded in.",
+    w_f3t: "Candidates & history", w_f3d: "Save each generation per candidate; reload, export, or delete past snapshots.",
+    w_f4t: "Proposals", w_f4d: "Edit a template with live numbers and export to Markdown, HTML, or PDF. Optional AI drafting.",
+    w_f5t: "Private by design", w_f5d: "Everything — inputs, candidates, and any API key — stays in this browser. Nothing is uploaded.",
+    w_foot: "Figures are estimates, not tax/legal advice.", w_start: "Get started",
+    p_title_health: "Healthcare packages", p_addplan: "+ Add plan", p_plan_name: "Plan name", p_prem_ind: "Individual premium / yr", p_prem_fam: "Family premium / yr", p_empshare: "Employer share",
+    p_pretax: "Premiums are pre-tax (Section 125)", p_pretax_yes: "Yes (reduces income tax + FICA)", p_pretax_no: "No", p_health_note: "Add as many plans/tiers as you like. Each candidate's package picks a plan and a coverage tier on the Compensation tab.",
+    p_payroll: "Employer payroll taxes", p_401k: "401(k) match", p_incometax: "Income tax assumptions",
+    p_hu_title: "Hungary — taxes & contributions", p_at_title: "Austria — taxes & contributions", p_br_title: "Brazil — taxes & contributions",
+    p_hu_pit: "Personal income tax (SZJA)", p_hu_tb: "Employee social contribution (TB)", p_hu_szocho: "Employer social contribution tax (szocho)", p_hu_fam: "Family allowance (monthly tax-base reduction per child)", p_hu_fam1: "1 child", p_hu_fam2: "2 children (per child)", p_hu_fam3: "3+ children (per child)", p_hu_other: "Other employer cost (fixed / yr)",
+    p_at_sv: "Employee social insurance (SV)", p_at_svcap: "SV annual ceiling", p_at_emprsv: "Employer social insurance", p_at_db: "Employer contribution (DB / FLAF)", p_at_dz: "Surcharge to DB (DZ)", p_at_komm: "Municipal tax (Kommunalsteuer)", p_at_other: "Other employer cost (fixed / yr)", p_at_note: "Income tax (Lohnsteuer) uses built-in 2025 progressive brackets. 13th/14th-month favourable taxation is not modelled (a simplification).",
+    p_br_emprinss: "Employer INSS", p_br_rat: "RAT / accident insurance", p_br_sistemas: "Sistema S / third parties", p_br_fgts: "FGTS", p_br_note: "INSS (employee) and IRRF use built-in 2025 progressive monthly tables with the contribution ceiling. Vacation +1/3 is not separately modelled.",
+    country_note: "Tax & contribution defaults for this country are approximate 2025 values — edit any of them on the Parameters tab."
+  },
+  hu: {
+    app_title: "Bérkalkulátor", app_sub: "Nettó · Bruttó · Teljes munkáltatói költség · Alvállalkozói díj · Jelöltek és előzmények · Ajánlatok · Több ország",
+    btn_reset: "Alapértékek visszaállítása",
+    nav_calc: "Javadalmazás", nav_sub: "Alvállalkozói díj", nav_candidates: "Jelöltek", nav_params: "Paraméterek", nav_proposal: "Ajánlat",
+    card_candidate: "Jelölt adatai", lbl_name: "Név", lbl_state: "Lakóhely (állam)", lbl_age: "Életkor", lbl_marital: "Családi állapot", lbl_children: "Gyermekek / eltartottak", lbl_notes: "Megjegyzés",
+    opt_single: "Egyedülálló", opt_married: "Házas",
+    card_package: "Csomag elemei", lbl_base: "Alapbér (éves, bruttó)", lbl_bonus: "Éves bónusz", opt_pct: "% az alapbérből", opt_fixed: "fix összeg",
+    lbl_401k: "Munkavállalói 401(k) hozzájárulás (alapbér %, adózás előtt)", hint_401k: "Csökkenti a jövedelemadót, a FICA-t nem. A munkáltatói kiegészítés a Paraméterek fülön.",
+    h3_health: "Egészségbiztosítás", chk_health: "Munkáltatói egészségbiztosítási csomag beszámítása", lbl_healthplan: "Csomag", lbl_tier: "Fedezeti szint", opt_tier_ind: "Csak munkavállaló", opt_tier_fam: "Munkavállaló + család",
+    pkg_hu_exempt: "SZJA-mentesség (25 év alatti / anya)", pkg_br_13th: "13. havi bér beszámítása (décimo terceiro)",
+    card_results: "Eredmény", btn_savehist: "💾 Mentés előzménybe", stat_net: "Munkavállalói nettó", stat_gross: "Bruttó", stat_full: "Teljes munkáltatói költség",
+    leg_net: "Nettó", leg_tax: "Munkavállalói adók", leg_ded: "Levonások", leg_emp: "Munkáltatói terhek",
+    h3_emp_side: "Munkavállalói oldal", h3_empr_side: "Munkáltatói oldal (teljes költség)",
+    sub_title: "Alvállalkozói óradíj számítása", sub_intro: "Az alvállalkozónak nincs fizetett szabadsága, ezért a munkavállalónál szabadnapként eltöltött napokat kevesebb számlázható napra kell felosztani — ez emeli a díjat. A korrekciós mezővel eltérhetsz a számított díjtól.",
+    lbl_basis: "Fedezendő éves csomag (alap)", opt_basis_full: "Teljes munkáltatói költség (összehasonlítható)", opt_basis_gross: "Bruttó javadalmazás", opt_basis_net: "Munkavállalói nettó", opt_basis_custom: "Egyedi összeg", lbl_custom_amt: "Egyedi éves összeg",
+    h3_worktime: "Munkaidő", lbl_workdays: "Munkanapok / év (alap)", hint_workdays: "260 = 52 hét × 5 nap", lbl_hoursday: "Óra / nap", lbl_holidays: "Munkaszüneti napok", lbl_pto: "Szabadság / PTO napok", lbl_sick: "Betegszabadság", lbl_buffer: "Nem számlázható tartaléknapok", hint_buffer: "Admin, betanulás, „padon”",
+    lbl_adjust: "Díjkorrekció (eltérés a számítottól)", hint_adjust: "pl. +15% alvállalkozói felár vagy −10% kedvezmény. 0 = pontosan a számított díj.",
+    sub_result: "Eredmény", sub_suggest: "Javasolt óradíj",
+    row_basis: "Csomag alapja", row_daysoff: "Szabadnapok (nem számlázható)", row_billdays: "Számlázható napok / év", row_billhrs: "Számlázható órák / év", row_baserate: "Számított alapdíj", row_adjust: "Korrekció", row_hourly: "Óradíj", row_dayrate: "Napidíj (× óra/nap)", row_annual: "Implikált éves (díj × számlázható óra)",
+    cand_title: "Mentett jelöltek és ajánlat-előzmények", cand_empty: "Még nincs mentett jelölt.", cand_empty2: "Töltsd ki a jelöltet a Javadalmazás fülön, majd nyomd meg a Mentés előzménybe gombot.",
+    btn_load: "Betöltés", btn_export: "Exportálás", btn_delete: "Törlés", btn_delcand: "Jelölt törlése", no_generations: "Nincs mentett generálás.",
+    hist_base: "Alap", hist_gross: "Bruttó", hist_net: "Nettó", hist_cost: "Költség",
+    btn_resettpl: "Sablon visszaállítása", btn_insertnum: "Élő számok beszúrása", btn_md: "⬇ .md", btn_html: "⬇ .html", btn_print: "🖨 Nyomtatás / PDF", btn_aisettings: "AI beállítások", btn_aigen: "✨ Generálás / csiszolás AI-val",
+    ai_title: "AI beállítások (Anthropic Claude)", ai_key_label: "API kulcs (csak helyben, a böngészőben tárolva)", ai_model_label: "Modell", ai_instr_label: "Utasítás az AI-nak", generating: "Generálás…",
+    tpl_title: "Sablonszerkesztő", tpl_supports: "— támogatja a {{helykitöltőket}}", ph_placeholders: "Elérhető helykitöltők", preview_title: "Előnézet",
+    li_base: "Alapbér", li_bonus: "Bónusz", li_gross: "Bruttó", li_net: "Nettó kifizetés", li_gross_comp: "Bruttó javadalmazás", li_fullcost: "Teljes munkáltatói költség",
+    li_401k_emp: "− 401(k) munkavállalói", li_health_emp: "− Egészségbiztosítási díj", li_fed: "− Szövetségi jövedelemadó", li_state: "− Állami jövedelemadó", li_ss: "− Társadalombiztosítás (SS)", li_medicare: "− Medicare",
+    li_empr_ss: "Munkáltatói társadalombiztosítás", li_empr_medicare: "Munkáltatói Medicare", li_workerscomp: "Üzemi baleseti biztosítás", li_401k_match: "401(k) munkáltatói kiegészítés", li_health_empr: "Egészségbiztosítás (munkáltatói rész)", li_other_empr: "Egyéb munkáltatói költség",
+    li_pit_hu: "− Személyi jövedelemadó (SZJA 15%)", li_tb_hu: "− Társadalombiztosítási járulék (TB 18,5%)", li_szocho: "Szociális hozzájárulási adó (szocho)", exempt: "mentes", after_famallow: "családi kedvezmény után",
+    li_sv_emp: "− Társadalombiztosítás (SV)", li_lohnsteuer: "− Jövedelemadó (Lohnsteuer)", li_sv_empr: "Munkáltatói társadalombiztosítás", li_db: "Munkáltatói hozzájárulás (DB / FLAF)", li_dz: "Pótlék (DZ)", li_kommunal: "Helyi adó (Kommunalsteuer)",
+    li_inss: "− INSS (társadalombiztosítás)", li_irrf: "− Jövedelemadó (IRRF)", li_empr_inss: "Munkáltatói INSS", li_rat: "RAT / baleseti biztosítás", li_sistemas: "Sistema S / harmadik felek",
+    catchup_note: "A jelölt {age} éves — jogosult lehet <b>401(k) felzárkóztató hozzájárulásra</b>. Érdemes magasabb befizetést kínálni.",
+    u_hr: "óra", u_days: "nap", u_hrs: "óra", u_hours: "óra", u_years: "év", u_children: "gyermek", no_children: "Nincs gyermek", u_candidates: "jelölt", u_generations: "mentett generálás",
+    sub_rate_note: "Fedezi a következőt: {basis} ({amount}), {days} számlázható napra elosztva.",
+    sub_foot: "{hrs} kiszámlázása szükséges a választott csomagalaphoz, mert {days} fizetett szabadnap, amit egy munkavállaló egyébként kapna, most fizetetlen.",
+    basis_full: "teljes munkáltatói költség", basis_gross: "bruttó javadalmazás", basis_net: "munkavállalói nettó", basis_custom: "az egyedi összeg",
+    of_base: "az alapbérből", fixed: "fix",
+    footer_html: "<b>Csak becslés.</b> Az adó- és járulékkulcsok beépített, 2025-ös közelítések, amelyek mind szerkeszthetők a Paraméterek fülön. Ez az eszköz ajánlat-modellezésre szolgál, és <b>nem</b> minősül adó-, jogi vagy pénzügyi tanácsadásnak — ellenőrizd az értékeket szakképzett bér-/adószakértővel. &nbsp;·&nbsp; <b>Az adataid a készülékeden maradnak:</b> minden adat, jelölt és az opcionális API kulcs csak ebben a böngészőben (localStorage) tárolódik, és sehová sem töltődik fel.",
+    w_title: "👋 Üdv a Bérkalkulátorban", w_sub: "Modellezz javadalmazási ajánlatokat az USA, Magyarország, Ausztria és Brazília esetén — mindezt a böngésződben.",
+    w_f1t: "Javadalmazás", w_f1d: "Add meg a jelöltet és a csomagot — lásd a becsült nettót, bruttót és a teljes munkáltatói költséget helyi pénznemben.",
+    w_f2t: "Alvállalkozói díj", w_f2d: "Alakíts át bármilyen csomagot óradíjjá, a fizetetlen szabadidőt is beszámítva.",
+    w_f3t: "Jelöltek és előzmények", w_f3d: "Ments el minden generálást jelöltenként; töltsd be, exportáld vagy töröld a korábbi pillanatképeket.",
+    w_f4t: "Ajánlatok", w_f4d: "Szerkessz sablont élő számokkal, és exportálj Markdown, HTML vagy PDF formátumba. Opcionális AI-fogalmazás.",
+    w_f5t: "Adatvédelem alapból", w_f5d: "Minden — adatok, jelöltek és az API kulcs — ebben a böngészőben marad. Semmi sem töltődik fel.",
+    w_foot: "Az értékek becslések, nem adó-/jogi tanácsadás.", w_start: "Kezdés",
+    p_title_health: "Egészségbiztosítási csomagok", p_addplan: "+ Csomag hozzáadása", p_plan_name: "Csomag neve", p_prem_ind: "Egyéni díj / év", p_prem_fam: "Családi díj / év", p_empshare: "Munkáltatói rész",
+    p_pretax: "A díjak adózás előttiek (Section 125)", p_pretax_yes: "Igen (csökkenti a jövedelemadót + FICA-t)", p_pretax_no: "Nem", p_health_note: "Adj hozzá tetszőleges számú csomagot/szintet. Minden jelölt csomagja a Javadalmazás fülön választ csomagot és fedezeti szintet.",
+    p_payroll: "Munkáltatói bérterhek", p_401k: "401(k) kiegészítés", p_incometax: "Jövedelemadó-feltételezések",
+    p_hu_title: "Magyarország — adók és járulékok", p_at_title: "Ausztria — adók és járulékok", p_br_title: "Brazília — adók és járulékok",
+    p_hu_pit: "Személyi jövedelemadó (SZJA)", p_hu_tb: "Munkavállalói TB-járulék", p_hu_szocho: "Szociális hozzájárulási adó (szocho)", p_hu_fam: "Családi kedvezmény (havi adóalap-csökkentés / gyermek)", p_hu_fam1: "1 gyermek", p_hu_fam2: "2 gyermek (gyermekenként)", p_hu_fam3: "3+ gyermek (gyermekenként)", p_hu_other: "Egyéb munkáltatói költség (fix / év)",
+    p_at_sv: "Munkavállalói társadalombiztosítás (SV)", p_at_svcap: "SV éves plafon", p_at_emprsv: "Munkáltatói társadalombiztosítás", p_at_db: "Munkáltatói hozzájárulás (DB / FLAF)", p_at_dz: "DB-pótlék (DZ)", p_at_komm: "Helyi adó (Kommunalsteuer)", p_at_other: "Egyéb munkáltatói költség (fix / év)", p_at_note: "A jövedelemadó (Lohnsteuer) beépített 2025-ös progresszív sávokkal számol. A 13./14. havi bér kedvező adózása nincs modellezve (egyszerűsítés).",
+    p_br_emprinss: "Munkáltatói INSS", p_br_rat: "RAT / baleseti biztosítás", p_br_sistemas: "Sistema S / harmadik felek", p_br_fgts: "FGTS", p_br_note: "Az INSS (munkavállalói) és az IRRF beépített 2025-ös progresszív havi táblákkal és a járulékplafonnal számol. A szabadság +1/3 külön nincs modellezve.",
+    country_note: "Az ehhez az országhoz tartozó adó- és járulék-alapértékek közelítő 2025-ös értékek — bármelyik szerkeszthető a Paraméterek fülön."
+  }
+};
+function setLang(lang) {
+  state.lang = (lang === "hu") ? "hu" : "en";
+  $("langSel").value = state.lang;
+  saveState(); applyI18n(); applyCountryUI(); renderHealthPlansParams(); renderCandidates(); renderPlaceholders(); renderAll();
+}
+function show(sel, on) { const el = document.querySelector(sel); if (el) el.style.display = on ? "" : "none"; }
+function buildCountrySelect() {
+  $("countrySel").innerHTML = Object.keys(COUNTRIES).map(cc => `<option value="${cc}">${COUNTRIES[cc].flag} ${COUNTRIES[cc].name}</option>`).join("");
+  $("countrySel").value = state.country;
+}
+function setCountry(cc) {
+  if (!COUNTRIES[cc]) cc = "US";
+  state.country = cc; $("countrySel").value = cc;
+  saveState(); applyCountryUI(); renderAll();
+  toast(COUNTRIES[cc].flag + " " + COUNTRIES[cc].name, "ok");
+}
+function applyCountryUI() {
+  const cc = state.country, sym = ccOf(cc).symbol;
+  document.querySelectorAll(".ccsym").forEach(el => el.textContent = sym);
+  show("#fieldState", cc === "US");
+  show("#pkgUs401k", cc === "US");
+  show("#pkgUsHealth", cc === "US");
+  show("#pkgHu", cc === "HU");
+  show("#pkgBr", cc === "BR");
+  ["US", "HU", "AT", "BR"].forEach(x => show("#params-" + x, x === cc));
+  const note = $("countryNote");
+  if (note) note.innerHTML = cc === "US" ? "" : `<div class="note" style="margin-bottom:14px">${t("country_note")}</div>`;
+}
+
 const DEFAULTS = {
+  // ui
+  lang: "en", country: "US",
   // candidate
   candidateName: "", candidateState: "CA", candidateAge: 35,
   maritalStatus: "single", children: 0, candidateNotes: "",
   // package
   baseSalary: 120000, bonusValue: 10, bonusType: "pct", emp401kPct: 6,
   includeHealth: true, healthPlanIndex: 1, healthTier: "individual",
+  huPitExempt: false, brInclude13: true,
+  // country-specific parameters (2025 approximate defaults; all editable)
+  huP: { pitRate: 15, empContrib: 18.5, employerContrib: 13, famAllow1: 66670, famAllow2: 133330, famAllow3: 220000, otherEmployer: 0 },
+  atP: { empSV: 18.07, empSVcap: 77400, employerSV: 20.98, db: 3.7, dz: 0.36, kommunal: 3.0, otherEmployer: 0 },
+  brP: { employerINSS: 20, rat: 2, sistemaS: 5.8, fgts: 8 },
   // parameters — payroll taxes
   ssRate: 6.2, ssWageBase: 176100,
   medRate: 1.45, addlMed: 0.9, addlMedThresh: 200000,
@@ -663,7 +907,7 @@ const DEFAULTS = {
   proposalText: ""
 };
 
-const STORAGE_KEY = "compCalcState_v2";
+const STORAGE_KEY = "compCalcState_v3";
 const KEY_STORAGE = "compCalcApiKey_v1";
 const CAND_STORAGE = "compCalcCandidates_v1";
 
@@ -676,6 +920,10 @@ function loadState() {
     const s = Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), saved);
     if (!Array.isArray(s.healthPlans) || !s.healthPlans.length)
       s.healthPlans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+    // deep-merge nested country param objects so new keys get defaults
+    for (const k of ["huP", "atP", "brP"]) s[k] = Object.assign({}, DEFAULTS[k], s[k] || {});
+    if (!COUNTRIES[s.country]) s.country = "US";
+    if (s.lang !== "hu") s.lang = "en";
     return s;
   } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
 }
@@ -692,8 +940,28 @@ function loadCandidates() {
 function saveCandidates() { localStorage.setItem(CAND_STORAGE, JSON.stringify(candidates)); }
 
 const $ = id => document.getElementById(id);
-const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
-const fmt2 = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function ccOf(cc) { return COUNTRIES[cc || state.country] || COUNTRIES.US; }
+function fmt(n, cc) {
+  const c = ccOf(cc);
+  try { return new Intl.NumberFormat(c.locale, { style: "currency", currency: c.currency, maximumFractionDigits: 0 }).format(Math.round(n || 0)); }
+  catch (e) { return c.symbol + Math.round(n || 0).toLocaleString(); }
+}
+function fmt2(n, cc) {
+  const c = ccOf(cc);
+  try { return new Intl.NumberFormat(c.locale, { style: "currency", currency: c.currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0); }
+  catch (e) { return c.symbol + (n || 0).toFixed(2); }
+}
+/* ---------- i18n ---------- */
+function t(k) {
+  const L = I18N[state.lang] || I18N.en;
+  return (L[k] != null) ? L[k] : (I18N.en[k] != null ? I18N.en[k] : k);
+}
+function applyI18n() {
+  document.querySelectorAll("[data-i18n]").forEach(el => { const v = t(el.getAttribute("data-i18n")); if (v != null) el.textContent = v; });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { const v = t(el.getAttribute("data-i18n-ph")); if (v != null) el.placeholder = v; });
+  const ft = $("footerText"); if (ft) ft.innerHTML = t("footer_html");
+  document.documentElement.lang = state.lang;
+}
 const escHtml = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const escAttr = t => String(t).replace(/"/g,"&quot;").replace(/</g,"&lt;");
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -710,130 +978,224 @@ function progressiveTax(taxable, brackets) {
   return tax;
 }
 
-/* ---------- Core calculation ---------- */
+/* ---------- Core calculation (country-aware) ---------- */
+function bonusOf(s, base) { return s.bonusType === "pct" ? base * (+s.bonusValue || 0) / 100 : (+s.bonusValue || 0); }
+function stdResult(cc, base, bonus, gross, net, fullCost, employeeLines, employerLines, segs, extra) {
+  return { cc, currency: ccOf(cc).currency, base, bonus, gross, net, fullCost, employeeLines, employerLines, segs, extra: extra || {} };
+}
 function calc() {
+  const cc = state.country || "US";
+  if (cc === "HU") return calcHU();
+  if (cc === "AT") return calcAT();
+  if (cc === "BR") return calcBR();
+  return calcUS();
+}
+
+function calcUS() {
   const s = state;
-  const base = +s.baseSalary || 0;
-  const bonus = s.bonusType === "pct" ? base * (+s.bonusValue || 0) / 100 : (+s.bonusValue || 0);
-  const gross = base + bonus;
-  const filing = filingOf(s);
-
+  const base = +s.baseSalary || 0, bonus = bonusOf(s, base), gross = base + bonus, filing = filingOf(s);
   const emp401k = base * (+s.emp401kPct || 0) / 100;
-
-  // Health plan selection
   let healthTotal = 0, employerShare = 80, planName = "—";
   const plan = s.healthPlans[s.healthPlanIndex];
   if (s.includeHealth && plan) {
     healthTotal = s.healthTier === "family" ? (+plan.premiumFamily || 0) : (+plan.premiumIndividual || 0);
-    employerShare = +plan.employerShare || 0;
-    planName = plan.name;
+    employerShare = +plan.employerShare || 0; planName = plan.name;
   }
   const employerHealth = healthTotal * employerShare / 100;
   const employeeHealth = healthTotal - employerHealth;
   const healthPretax = s.healthPretax === "yes";
-
   const ficaWages = gross - (healthPretax ? employeeHealth : 0);
-
   const stdDed = filing === "mfj" ? (+s.stdMfj || 0) : (+s.stdSingle || 0);
-  const preTaxDeductions = emp401k + (healthPretax ? employeeHealth : 0);
-  const fedTaxable = Math.max(0, gross - preTaxDeductions - stdDed);
+  const preTax = emp401k + (healthPretax ? employeeHealth : 0);
+  const fedTaxable = Math.max(0, gross - preTax - stdDed);
   const federalTax = progressiveTax(fedTaxable, FED_BRACKETS[filing]);
-  const stateTaxable = Math.max(0, gross - preTaxDeductions);
-  const stateTax = stateTaxable * (+s.stateRate || 0) / 100;
-
+  const stateTax = Math.max(0, gross - preTax) * (+s.stateRate || 0) / 100;
   const ss = Math.min(ficaWages, +s.ssWageBase || 0) * (+s.ssRate || 0) / 100;
   let medicare = ficaWages * (+s.medRate || 0) / 100;
-  if (ficaWages > (+s.addlMedThresh || 0))
-    medicare += (ficaWages - (+s.addlMedThresh)) * (+s.addlMed || 0) / 100;
-
+  if (ficaWages > (+s.addlMedThresh || 0)) medicare += (ficaWages - (+s.addlMedThresh)) * (+s.addlMed || 0) / 100;
   const net = gross - emp401k - employeeHealth - federalTax - stateTax - ss - medicare;
-
-  const empSS = ss;
-  const empMedicare = ficaWages * (+s.medRate || 0) / 100;
+  const empSS = ss, empMedicare = ficaWages * (+s.medRate || 0) / 100;
   const futa = Math.min(gross, +s.futaWageBase || 0) * (+s.futaRate || 0) / 100;
   const suta = Math.min(gross, +s.sutaWageBase || 0) * (+s.sutaRate || 0) / 100;
   const workersComp = gross * (+s.workersComp || 0) / 100;
   const employer401k = Math.min(emp401k * (+s.matchRate || 0) / 100, base * (+s.matchCap || 0) / 100);
   const otherEmployer = +s.otherEmployer || 0;
+  const empAddOns = empSS + empMedicare + futa + suta + workersComp + employer401k + employerHealth + otherEmployer;
+  const fullCost = gross + empAddOns;
+  const eLines = [
+    { l: t("li_base"), v: base, k: "add" },
+    { l: t("li_bonus"), v: bonus, k: "add" },
+    { l: t("li_gross"), v: gross, k: "subtotal" },
+    { l: t("li_401k_emp"), v: emp401k, k: "sub" },
+    { l: t("li_health_emp") + " (" + planName + ")", v: employeeHealth, k: "sub" },
+    { l: t("li_fed"), v: federalTax, k: "sub" },
+    { l: t("li_state"), v: stateTax, k: "sub" },
+    { l: t("li_ss"), v: ss, k: "sub" },
+    { l: t("li_medicare"), v: medicare, k: "sub" },
+    { l: t("li_net"), v: net, k: "total" }
+  ];
+  const rLines = [
+    { l: t("li_gross_comp"), v: gross, k: "add" },
+    { l: "+ " + t("li_empr_ss"), v: empSS, k: "add" },
+    { l: "+ " + t("li_empr_medicare"), v: empMedicare, k: "add" },
+    { l: "+ FUTA", v: futa, k: "add" },
+    { l: "+ SUTA", v: suta, k: "add" },
+    { l: "+ " + t("li_workerscomp"), v: workersComp, k: "add" },
+    { l: "+ " + t("li_401k_match"), v: employer401k, k: "add" },
+    { l: "+ " + t("li_health_empr"), v: employerHealth, k: "add" },
+    { l: "+ " + t("li_other_empr"), v: otherEmployer, k: "add" },
+    { l: t("li_fullcost"), v: fullCost, k: "total" }
+  ];
+  return stdResult("US", base, bonus, gross, net, fullCost, eLines, rLines,
+    { net, tax: federalTax + stateTax + ss + medicare, ded: emp401k + employeeHealth, emp: empAddOns },
+    { planName, employer401k, employerHealth, healthTotal, healthTier: s.healthTier });
+}
 
-  const employerAddOns = empSS + empMedicare + futa + suta + workersComp + employer401k + employerHealth + otherEmployer;
-  const fullCost = gross + employerAddOns;
+function calcHU() {
+  const s = state, p = s.huP;
+  const base = +s.baseSalary || 0, bonus = bonusOf(s, base), gross = base + bonus;
+  const n = +s.children || 0;
+  let monthlyRed = 0;
+  if (n === 1) monthlyRed = +p.famAllow1 || 0;
+  else if (n === 2) monthlyRed = (+p.famAllow2 || 0) * 2;
+  else if (n >= 3) monthlyRed = (+p.famAllow3 || 0) * n;
+  const annualRed = Math.min(gross, monthlyRed * 12);
+  const pitBase = s.huPitExempt ? 0 : Math.max(0, gross - annualRed);
+  const pit = pitBase * (+p.pitRate || 0) / 100;
+  const tb = gross * (+p.empContrib || 0) / 100;
+  const net = gross - pit - tb;
+  const szocho = gross * (+p.employerContrib || 0) / 100;
+  const other = +p.otherEmployer || 0;
+  const empAddOns = szocho + other;
+  const fullCost = gross + empAddOns;
+  const eLines = [
+    { l: t("li_base"), v: base, k: "add" },
+    { l: t("li_bonus"), v: bonus, k: "add" },
+    { l: t("li_gross"), v: gross, k: "subtotal" },
+    { l: t("li_pit_hu") + (s.huPitExempt ? " — " + t("exempt") : (annualRed > 0 ? " — " + t("after_famallow") : "")), v: pit, k: "sub" },
+    { l: t("li_tb_hu"), v: tb, k: "sub" },
+    { l: t("li_net"), v: net, k: "total" }
+  ];
+  const rLines = [
+    { l: t("li_gross_comp"), v: gross, k: "add" },
+    { l: "+ " + t("li_szocho"), v: szocho, k: "add" },
+    { l: "+ " + t("li_other_empr"), v: other, k: "add" },
+    { l: t("li_fullcost"), v: fullCost, k: "total" }
+  ];
+  return stdResult("HU", base, bonus, gross, net, fullCost, eLines, rLines,
+    { net, tax: pit + tb, ded: 0, emp: empAddOns }, { famAllow: annualRed });
+}
 
-  return {
-    base, bonus, gross, emp401k, employeeHealth, employerHealth, healthTotal, planName, filing,
-    federalTax, stateTax, ss, medicare, net,
-    empSS, empMedicare, futa, suta, workersComp, employer401k, otherEmployer,
-    employerAddOns, fullCost
-  };
+function calcAT() {
+  const s = state, p = s.atP;
+  const base = +s.baseSalary || 0, bonus = bonusOf(s, base), gross = base + bonus;
+  const cap = +p.empSVcap || Infinity;
+  const sv = Math.min(gross, cap) * (+p.empSV || 0) / 100;
+  const taxable = Math.max(0, gross - sv);
+  const lst = progressiveTax(taxable, AT_BRACKETS);
+  const net = gross - sv - lst;
+  const emprSV = Math.min(gross, cap) * (+p.employerSV || 0) / 100;
+  const db = gross * (+p.db || 0) / 100, dz = gross * (+p.dz || 0) / 100, kom = gross * (+p.kommunal || 0) / 100, other = +p.otherEmployer || 0;
+  const empAddOns = emprSV + db + dz + kom + other;
+  const fullCost = gross + empAddOns;
+  const eLines = [
+    { l: t("li_base"), v: base, k: "add" },
+    { l: t("li_bonus"), v: bonus, k: "add" },
+    { l: t("li_gross"), v: gross, k: "subtotal" },
+    { l: t("li_sv_emp"), v: sv, k: "sub" },
+    { l: t("li_lohnsteuer"), v: lst, k: "sub" },
+    { l: t("li_net"), v: net, k: "total" }
+  ];
+  const rLines = [
+    { l: t("li_gross_comp"), v: gross, k: "add" },
+    { l: "+ " + t("li_sv_empr"), v: emprSV, k: "add" },
+    { l: "+ " + t("li_db"), v: db, k: "add" },
+    { l: "+ " + t("li_dz"), v: dz, k: "add" },
+    { l: "+ " + t("li_kommunal"), v: kom, k: "add" },
+    { l: "+ " + t("li_other_empr"), v: other, k: "add" },
+    { l: t("li_fullcost"), v: fullCost, k: "total" }
+  ];
+  return stdResult("AT", base, bonus, gross, net, fullCost, eLines, rLines,
+    { net, tax: sv + lst, ded: 0, emp: empAddOns }, {});
+}
+
+function calcBR() {
+  const s = state, p = s.brP;
+  const base = +s.baseSalary || 0, bonus = bonusOf(s, base);
+  const payments = s.brInclude13 ? 13 : 12;
+  const annualGross = base * (payments / 12) + bonus;
+  const monthlyGross = annualGross / payments;
+  const inssM = progressiveTax(Math.min(monthlyGross, BR_INSS_CEIL), BR_INSS);
+  const dep = (+s.children || 0) * 189.59;
+  const ded = Math.max(564.80, dep);
+  const irrfM = brIRRF(Math.max(0, monthlyGross - inssM - ded));
+  const net = (monthlyGross - inssM - irrfM) * payments;
+  const inss = inssM * payments, irrf = irrfM * payments;
+  const eINSS = monthlyGross * (+p.employerINSS || 0) / 100 * payments;
+  const rat = monthlyGross * (+p.rat || 0) / 100 * payments;
+  const sis = monthlyGross * (+p.sistemaS || 0) / 100 * payments;
+  const fgts = monthlyGross * (+p.fgts || 0) / 100 * payments;
+  const empAddOns = eINSS + rat + sis + fgts;
+  const fullCost = annualGross + empAddOns;
+  const eLines = [
+    { l: t("li_base") + (s.brInclude13 ? " (×13)" : ""), v: base * (payments / 12), k: "add" },
+    { l: t("li_bonus"), v: bonus, k: "add" },
+    { l: t("li_gross"), v: annualGross, k: "subtotal" },
+    { l: t("li_inss"), v: inss, k: "sub" },
+    { l: t("li_irrf"), v: irrf, k: "sub" },
+    { l: t("li_net"), v: net, k: "total" }
+  ];
+  const rLines = [
+    { l: t("li_gross_comp"), v: annualGross, k: "add" },
+    { l: "+ " + t("li_empr_inss"), v: eINSS, k: "add" },
+    { l: "+ " + t("li_rat"), v: rat, k: "add" },
+    { l: "+ " + t("li_sistemas"), v: sis, k: "add" },
+    { l: "+ FGTS", v: fgts, k: "add" },
+    { l: t("li_fullcost"), v: fullCost, k: "total" }
+  ];
+  return stdResult("BR", base * (payments / 12), bonus, annualGross, net, fullCost, eLines, rLines,
+    { net, tax: inss + irrf, ded: 0, emp: empAddOns }, { payments });
 }
 
 /* ---------- Render compensation ---------- */
 function renderCalc() {
-  const r = calc();
-  $("netOut").textContent = fmt(r.net);
-  $("grossOut").textContent = fmt(r.gross);
-  $("fullOut").textContent = fmt(r.fullCost);
+  const r = calc(), cc = r.cc;
+  $("netOut").textContent = fmt(r.net, cc);
+  $("grossOut").textContent = fmt(r.gross, cc);
+  $("fullOut").textContent = fmt(r.fullCost, cc);
   $("resBasePill").textContent = state.candidateName || "";
-
   const age = +state.candidateAge || 0;
-  $("ageNote").innerHTML = (age >= (+state.catchupAge || 50))
-    ? `<div class="note" style="margin-top:10px">Candidate is ${age} — eligible for <b>401(k) catch-up contributions</b>. Consider a higher deferral in the offer narrative.</div>` : "";
-
-  const employeeTaxes = r.federalTax + r.stateTax + r.ss + r.medicare;
-  const deductions = r.emp401k + r.employeeHealth;
-  const tot = r.fullCost || 1;
+  $("ageNote").innerHTML = (cc === "US" && age >= (+state.catchupAge || 50))
+    ? `<div class="note" style="margin-top:10px">${t("catchup_note").replace("{age}", age)}</div>` : "";
+  const sg = r.segs, tot = r.fullCost || 1;
   $("costBar").innerHTML =
-    seg(r.net, tot, "var(--green)") +
-    seg(employeeTaxes, tot, "var(--accent)") +
-    seg(deductions, tot, "var(--purple)") +
-    seg(r.employerAddOns, tot, "var(--amber)");
-
-  $("employeeBreakdown").innerHTML = [
-    row("Base salary", fmt(r.base)),
-    row("Bonus", fmt(r.bonus)),
-    row("Gross", fmt(r.gross), "subtotal"),
-    row("− 401(k) employee", "−" + fmt(r.emp401k)),
-    row("− Health premium (" + r.planName + ")", "−" + fmt(r.employeeHealth)),
-    row("− Federal income tax", "−" + fmt(r.federalTax)),
-    row("− State income tax", "−" + fmt(r.stateTax)),
-    row("− Social Security", "−" + fmt(r.ss)),
-    row("− Medicare", "−" + fmt(r.medicare)),
-    row("Net take-home", fmt(r.net), "total")
-  ].join("");
-
-  $("employerBreakdown").innerHTML = [
-    row("Gross compensation", fmt(r.gross)),
-    row("+ Employer Social Security", fmt(r.empSS)),
-    row("+ Employer Medicare", fmt(r.empMedicare)),
-    row("+ FUTA", fmt(r.futa)),
-    row("+ SUTA", fmt(r.suta)),
-    row("+ Workers' comp", fmt(r.workersComp)),
-    row("+ 401(k) match", fmt(r.employer401k)),
-    row("+ Health (employer share)", fmt(r.employerHealth)),
-    row("+ Other employer cost", fmt(r.otherEmployer)),
-    row("Full company cost", fmt(r.fullCost), "total")
-  ].join("");
+    seg(sg.net, tot, "var(--green)") + seg(sg.tax, tot, "var(--accent)") +
+    seg(sg.ded, tot, "var(--purple)") + seg(sg.emp, tot, "var(--amber)");
+  $("employeeBreakdown").innerHTML = renderLines(r.employeeLines, cc);
+  $("employerBreakdown").innerHTML = renderLines(r.employerLines, cc);
+}
+function renderLines(lines, cc) {
+  return lines.map(L => {
+    const valStr = (L.k === "sub" ? "−" : "") + fmt(L.v, cc);
+    const cls = L.k === "total" ? " total" : "";
+    const ls = L.k === "subtotal" ? ' style="font-weight:700;color:var(--text)"' : "";
+    return `<div class="row${cls}"><span class="label"${ls}>${L.l}</span><span class="val">${valStr}</span></div>`;
+  }).join("");
 }
 function seg(v, tot, color) {
   const w = Math.max(0, v / tot * 100);
   return `<div style="width:${w}%;background:${color}" title="${fmt(v)}"></div>`;
 }
-function row(label, val, cls = "") {
-  const c = cls === "total" ? " total" : "";
-  const lstyle = cls === "subtotal" ? ' style="font-weight:700;color:var(--text)"' : "";
-  return `<div class="row${c}"><span class="label"${lstyle}>${label}</span><span class="val">${val}</span></div>`;
-}
 
 /* ---------- Subcontractor ---------- */
 function renderSub() {
-  const s = state, r = calc();
+  const s = state, r = calc(), cc = r.cc;
   let basis;
   if (s.subBasis === "full") basis = r.fullCost;
   else if (s.subBasis === "gross") basis = r.gross;
   else if (s.subBasis === "net") basis = r.net;
   else basis = +s.subCustomAmount || 0;
   $("customBasisField").style.display = s.subBasis === "custom" ? "" : "none";
-
   const daysOff = (+s.subHolidays || 0) + (+s.subPto || 0) + (+s.subSick || 0) + (+s.subBuffer || 0);
   const billDays = Math.max(1, (+s.subWorkDays || 0) - daysOff);
   const billHrs = billDays * (+s.subHoursDay || 0);
@@ -842,23 +1204,24 @@ function renderSub() {
   const rate = baseRate * (1 + adj / 100);
   const dayRate = rate * (+s.subHoursDay || 0);
   const annual = rate * billHrs;
-
-  $("subRateOut").textContent = fmt2(rate) + "/hr";
-  $("subRateOut2").textContent = fmt2(rate) + "/hr";
-  $("subRateNote").textContent = `Covers ${labelFor(s.subBasis)} of ${fmt(basis)} across ${billDays} billable days.`;
-  $("subBasisOut").textContent = fmt(basis);
-  $("subDaysOffOut").textContent = daysOff + " days";
-  $("subBillDaysOut").textContent = billDays + " days";
-  $("subBillHrsOut").textContent = Math.round(billHrs).toLocaleString() + " hrs";
-  $("subBaseRateOut").textContent = fmt2(baseRate) + "/hr";
+  const hr = "/" + t("u_hr");
+  $("subRateOut").textContent = fmt2(rate, cc) + hr;
+  $("subRateOut2").textContent = fmt2(rate, cc) + hr;
+  $("subRateNote").textContent = t("sub_rate_note").replace("{basis}", labelFor(s.subBasis)).replace("{amount}", fmt(basis, cc)).replace("{days}", billDays);
+  $("subBasisOut").textContent = fmt(basis, cc);
+  $("subDaysOffOut").textContent = daysOff + " " + t("u_days");
+  $("subBillDaysOut").textContent = billDays + " " + t("u_days");
+  $("subBillHrsOut").textContent = Math.round(billHrs).toLocaleString() + " " + t("u_hrs");
+  $("subBaseRateOut").textContent = fmt2(baseRate, cc) + hr;
   $("subAdjOut").textContent = (adj >= 0 ? "+" : "") + adj + "%";
-  $("subDayRateOut").textContent = fmt2(dayRate);
-  $("subAnnualOut").textContent = fmt(annual);
-  $("subEffNote").textContent = `${Math.round(billHrs).toLocaleString()} hours`;
-  $("subDaysOffNote").textContent = daysOff;
+  $("subDayRateOut").textContent = fmt2(dayRate, cc);
+  $("subAnnualOut").textContent = fmt(annual, cc);
+  $("subFootNote").innerHTML = t("sub_foot")
+    .replace("{hrs}", "<b>" + Math.round(billHrs).toLocaleString() + " " + t("u_hours") + "</b>")
+    .replace("{days}", "<b>" + daysOff + "</b>");
 }
 function labelFor(b) {
-  return { full: "full company cost", gross: "gross compensation", net: "employee net", custom: "the custom amount" }[b] || b;
+  return { full: t("basis_full"), gross: t("basis_gross"), net: t("basis_net"), custom: t("basis_custom") }[b] || b;
 }
 
 /* ---------- Health plan editor (Parameters) ---------- */
@@ -885,6 +1248,7 @@ function refreshHealthSelect() {
 function candidateInfo() {
   return {
     name: (state.candidateName || "").trim(),
+    country: state.country,
     state: state.candidateState,
     age: state.candidateAge,
     maritalStatus: state.maritalStatus,
@@ -901,7 +1265,7 @@ function saveToHistory() {
     timestamp: Date.now(),
     proposalText: $("proposalText").value,
     snapshot: JSON.parse(JSON.stringify(state)),
-    summary: { base: r.base, gross: r.gross, net: r.net, full: r.fullCost, plan: r.planName, tier: state.healthTier }
+    summary: { base: r.base, gross: r.gross, net: r.net, full: r.fullCost, cc: r.cc, plan: r.extra.planName || COUNTRIES[r.cc].name, tier: state.healthTier || "" }
   };
   let cand = candidates.find(c => c.name.toLowerCase() === name.toLowerCase());
   if (!cand) { cand = Object.assign({ id: uid() }, candidateInfo(), { history: [] }); candidates.unshift(cand); }
@@ -913,37 +1277,44 @@ function saveToHistory() {
 }
 function renderCandidates() {
   const list = $("candidatesList");
+  const totalGen = candidates.reduce((a, c) => a + c.history.length, 0);
   $("candCount").textContent = candidates.length
-    ? `${candidates.length} candidate${candidates.length > 1 ? "s" : ""}, ${candidates.reduce((a, c) => a + c.history.length, 0)} saved generations`
-    : "";
+    ? `${candidates.length} ${t("u_candidates")} · ${totalGen} ${t("u_generations")}` : "";
   if (!candidates.length) {
-    list.innerHTML = `<div class="card empty">No candidates saved yet.<br><span style="font-size:13px">Fill in a candidate on the Compensation tab, then press <b>💾 Save to history</b>.</span></div>`;
+    list.innerHTML = `<div class="card empty">${t("cand_empty")}<br><span style="font-size:13px">${t("cand_empty2")}</span></div>`;
     return;
   }
   list.innerHTML = candidates.map(c => {
     const initials = (c.name || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    const loc = (c.country && c.country !== "US")
+      ? (COUNTRIES[c.country] ? COUNTRIES[c.country].flag + " " + COUNTRIES[c.country].name : c.country)
+      : (c.state ? STATE_NAMES[c.state] || c.state : "United States");
     const meta = [
-      c.state ? `<b>${STATE_NAMES[c.state] || c.state}</b>` : "",
-      c.age ? `${c.age} yrs` : "",
-      c.maritalStatus === "married" ? "Married" : "Single",
-      (+c.children > 0) ? `${c.children} child${+c.children > 1 ? "ren" : ""}` : "No children",
+      `<b>${loc}</b>`,
+      c.age ? `${c.age} ${t("u_years")}` : "",
+      c.maritalStatus === "married" ? t("opt_married") : t("opt_single"),
+      (+c.children > 0) ? `${c.children} ${t("u_children")}` : t("no_children"),
       c.notes ? `<span class="badge">${escHtml(c.notes)}</span>` : ""
     ].filter(Boolean).join("");
-    const hist = c.history.map(h => `
+    const hist = c.history.map(h => {
+      const hc = h.summary.cc || "US";
+      const badge = h.summary.tier ? `${escHtml(h.summary.plan)} · ${h.summary.tier}` : escHtml(h.summary.plan || "");
+      return `
       <div class="hist-item">
         <div class="hist-when">${new Date(h.timestamp).toLocaleString()}</div>
         <div class="hist-sum">
-          <span>Base <b>${fmt(h.summary.base)}</b></span>
-          <span>Gross <b>${fmt(h.summary.gross)}</b></span>
-          <span>Net <b>${fmt(h.summary.net)}</b></span>
-          <span>Cost <b>${fmt(h.summary.full)}</b></span>
-          <span class="badge">${escHtml(h.summary.plan)} · ${h.summary.tier}</span>
+          <span>${t("hist_base")} <b>${fmt(h.summary.base, hc)}</b></span>
+          <span>${t("hist_gross")} <b>${fmt(h.summary.gross, hc)}</b></span>
+          <span>${t("hist_net")} <b>${fmt(h.summary.net, hc)}</b></span>
+          <span>${t("hist_cost")} <b>${fmt(h.summary.full, hc)}</b></span>
+          ${badge ? `<span class="badge">${badge}</span>` : ""}
         </div>
         <div class="spacer"></div>
-        <button class="btn ghost sm" data-act="load" data-c="${c.id}" data-h="${h.id}">Load</button>
-        <button class="btn ghost sm" data-act="exp" data-c="${c.id}" data-h="${h.id}">Export</button>
-        <button class="btn ghost sm danger" data-act="delh" data-c="${c.id}" data-h="${h.id}">Delete</button>
-      </div>`).join("");
+        <button class="btn ghost sm" data-act="load" data-c="${c.id}" data-h="${h.id}">${t("btn_load")}</button>
+        <button class="btn ghost sm" data-act="exp" data-c="${c.id}" data-h="${h.id}">${t("btn_export")}</button>
+        <button class="btn ghost sm danger" data-act="delh" data-c="${c.id}" data-h="${h.id}">${t("btn_delete")}</button>
+      </div>`;
+    }).join("");
     return `
       <div class="cand-card">
         <div class="cand-head">
@@ -952,9 +1323,9 @@ function renderCandidates() {
             <div style="font-weight:700;font-size:15px">${escHtml(c.name)}</div>
             <div class="cand-meta">${meta}</div>
           </div>
-          <button class="btn ghost sm danger" data-act="delc" data-c="${c.id}">Delete candidate</button>
+          <button class="btn ghost sm danger" data-act="delc" data-c="${c.id}">${t("btn_delcand")}</button>
         </div>
-        <div class="hist-list">${hist || '<div class="muted" style="padding:10px 0">No generations saved.</div>'}</div>
+        <div class="hist-list">${hist || `<div class="muted" style="padding:10px 0">${t("no_generations")}</div>`}</div>
       </div>`;
   }).join("");
 }
@@ -972,6 +1343,8 @@ function loadHistoryEntry(cid, hid) {
   state.proposalText = h.proposalText;
   saveState();
   hydrateInputs();
+  applyI18n();
+  applyCountryUI();
   renderHealthPlansParams();
   refreshHealthSelect();
   renderAll();
@@ -981,25 +1354,30 @@ function loadHistoryEntry(cid, hid) {
 
 /* ---------- Proposal ---------- */
 function proposalVars() {
-  const r = calc(), s = state;
+  const r = calc(), s = state, cc = r.cc, x = r.extra;
+  const loc = cc === "US" ? (STATE_NAMES[s.candidateState] || "United States") : COUNTRIES[cc].name;
   return {
     candidate_name: s.candidateName || "[Candidate]",
-    candidate_state: STATE_NAMES[s.candidateState] || s.candidateState || "—",
+    country: COUNTRIES[cc].name,
+    currency: COUNTRIES[cc].currency,
+    candidate_location: loc,
+    candidate_state: loc,
     candidate_age: String(s.candidateAge || "—"),
-    marital_status: s.maritalStatus === "married" ? "Married" : "Single",
+    marital_status: s.maritalStatus === "married" ? t("opt_married") : t("opt_single"),
     children: String(s.children || 0),
-    base_salary: fmt(r.base),
-    bonus: fmt(r.bonus),
-    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% of base salary` : `${fmt(r.bonus)} fixed`,
-    gross: fmt(r.gross),
-    net: fmt(r.net),
-    full_cost: fmt(r.fullCost),
-    employer_401k: fmt(r.employer401k),
-    employer_health: fmt(r.employerHealth),
-    health_total: fmt(r.healthTotal),
-    health_plan: r.planName,
-    health_tier: s.healthTier === "family" ? "Employee + family" : "Employee only",
-    emp_401k_pct: s.emp401kPct + "%",
+    base_salary: fmt(r.base, cc),
+    bonus: fmt(r.bonus, cc),
+    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% ${t("of_base")}` : `${fmt(r.bonus, cc)} ${t("fixed")}`,
+    gross: fmt(r.gross, cc),
+    net: fmt(r.net, cc),
+    full_cost: fmt(r.fullCost, cc),
+    employer_contrib: fmt(r.segs.emp, cc),
+    employer_401k: x.employer401k != null ? fmt(x.employer401k, cc) : "—",
+    employer_health: x.employerHealth != null ? fmt(x.employerHealth, cc) : "—",
+    health_total: x.healthTotal != null ? fmt(x.healthTotal, cc) : "—",
+    health_plan: x.planName || "—",
+    health_tier: x.healthTier ? (x.healthTier === "family" ? t("opt_tier_fam") : t("opt_tier_ind")) : "—",
+    emp_401k_pct: (s.emp401kPct || 0) + "%",
     date: new Date().toISOString().slice(0, 10)
   };
 }
@@ -1007,10 +1385,11 @@ function applyPlaceholders(text) {
   const vars = proposalVars();
   return text.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in vars ? vars[k] : m));
 }
-const DEFAULT_TEMPLATE = `# Compensation Proposal
+const TEMPLATES = {
+  en: `# Compensation Proposal
 
 **Prepared for:** {{candidate_name}}
-**Location:** {{candidate_state}}
+**Location:** {{candidate_location}}
 **Date:** {{date}}
 
 Dear {{candidate_name}},
@@ -1024,19 +1403,19 @@ both the value you bring and our commitment to your growth.
 |---|---|
 | Base salary | {{base_salary}} |
 | Target bonus ({{bonus_desc}}) | {{bonus}} |
-| 401(k) employer match | {{employer_401k}} |
-| Health insurance — {{health_plan}} ({{health_tier}}) | {{employer_health}} |
-| **Estimated gross compensation** | **{{gross}}** |
+| **Gross compensation** | **{{gross}}** |
+| Estimated net take-home | {{net}} |
+| Employer contributions & benefits | {{employer_contrib}} |
+| **Total cost to company** | **{{full_cost}}** |
 
 ## What This Means For You
 
-- A competitive **base salary of {{base_salary}}**, paid on a regular cycle.
+- A competitive **base salary of {{base_salary}}** in {{country}}, paid on a regular cycle.
 - A **performance bonus** targeted at {{bonus_desc}}.
-- A **401(k) plan** with an employer match of up to {{employer_401k}} per year.
-- The **{{health_plan}}** health plan ({{health_tier}}), with the company covering
-  {{employer_health}} of the annual premium on your behalf.
 - Your estimated **net take-home pay** is approximately {{net}} per year, before
-  individual elections and credits.
+  individual circumstances, credits, and elections.
+- On top of your gross pay, the company invests a further **{{employer_contrib}}** in
+  mandatory contributions and benefits, for a total cost to company of **{{full_cost}}**.
 
 ## Next Steps
 
@@ -1046,7 +1425,49 @@ know if you have any questions. This offer is valid for 14 days from the date ab
 Warm regards,
 
 The Hiring Team
-`;
+`,
+  hu: `# Bérajánlat
+
+**Címzett:** {{candidate_name}}
+**Helyszín:** {{candidate_location}}
+**Dátum:** {{date}}
+
+Kedves {{candidate_name}}!
+
+Örömmel ajánljuk az alábbi javadalmazási csomagot. Meggyőződésünk, hogy ez tükrözi
+mind az Ön által hozott értéket, mind a fejlődése iránti elkötelezettségünket.
+
+## A csomag összefoglalása
+
+| Elem | Éves érték |
+|---|---|
+| Alapbér | {{base_salary}} |
+| Célbónusz ({{bonus_desc}}) | {{bonus}} |
+| **Bruttó javadalmazás** | **{{gross}}** |
+| Becsült nettó kifizetés | {{net}} |
+| Munkáltatói járulékok és juttatások | {{employer_contrib}} |
+| **Teljes munkáltatói költség** | **{{full_cost}}** |
+
+## Mit jelent ez Önnek
+
+- Versenyképes, **{{base_salary}} összegű alapbér** ({{country}}), rendszeres kifizetéssel.
+- **Teljesítménybónusz**, {{bonus_desc}} célértékkel.
+- A becsült **nettó kifizetés** évente megközelítőleg {{net}}, az egyéni körülmények
+  és kedvezmények figyelembevétele előtt.
+- A bruttó béren felül a vállalat további **{{employer_contrib}}** összeget fordít
+  kötelező járulékokra és juttatásokra, így a teljes munkáltatói költség **{{full_cost}}**.
+
+## Következő lépések
+
+Nagy örömmel látnánk Önt a csapatban. Kérjük, tekintse át a fenti részleteket, és jelezze,
+ha bármilyen kérdése van. Az ajánlat a fenti dátumtól számított 14 napig érvényes.
+
+Üdvözlettel,
+
+A toborzó csapat
+`
+};
+function defaultTemplate() { return TEMPLATES[state.lang] || TEMPLATES.en; }
 
 function renderProposal() {
   $("proposalPreview").innerHTML = mdToHtml(applyPlaceholders($("proposalText").value));
@@ -1192,7 +1613,7 @@ async function directGenerate(payload, key) {
 }
 
 async function generateWithAI() {
-  const btn = $("aiGenerateBtn"); btn.disabled = true; btn.textContent = "Generating…";
+  const btn = $("aiGenerateBtn"); btn.disabled = true; btn.textContent = t("generating");
   const payload = {
     vars: proposalVars(),
     current: $("proposalText").value,
@@ -1220,7 +1641,7 @@ async function generateWithAI() {
   } catch (e) {
     toast("AI error: " + e.message, "err");
   } finally {
-    btn.disabled = false; btn.textContent = "✨ Generate / polish with AI";
+    btn.disabled = false; btn.textContent = t("btn_aigen");
   }
 }
 
@@ -1248,6 +1669,8 @@ const BINDINGS = [
   ["includeHealth", "includeHealth", "bool"],
   ["healthPlanIndex", "healthPlanIndex", "num"],
   ["healthTier", "healthTier", "str"],
+  ["huPitExempt", "huPitExempt", "bool"],
+  ["brInclude13", "brInclude13", "bool"],
   ["p_ssRate", "ssRate", "num"], ["p_ssWageBase", "ssWageBase", "num"],
   ["p_medRate", "medRate", "num"], ["p_addlMed", "addlMed", "num"], ["p_addlMedThresh", "addlMedThresh", "num"],
   ["p_futaRate", "futaRate", "num"], ["p_futaWageBase", "futaWageBase", "num"],
@@ -1276,9 +1699,12 @@ function hydrateInputs() {
     if (type === "bool") el.checked = !!state[key];
     else el.value = state[key];
   }
-  $("proposalText").value = state.proposalText || DEFAULT_TEMPLATE;
+  $("proposalText").value = state.proposalText || defaultTemplate();
   const savedKey = localStorage.getItem(KEY_STORAGE);
   if (savedKey) $("aiKey").value = savedKey;
+  $("langSel").value = state.lang;
+  $("countrySel").value = state.country;
+  document.querySelectorAll("[data-cp]").forEach(el => { el.value = state[el.dataset.cp][el.dataset.k]; });
   updateStateRateHint();
 }
 function bindInputs() {
@@ -1303,6 +1729,16 @@ function bindInputs() {
   $("aiKey").addEventListener("input", () => {
     const v = $("aiKey").value.trim();
     if (v) localStorage.setItem(KEY_STORAGE, v); else localStorage.removeItem(KEY_STORAGE);
+  });
+
+  // Language & country selectors
+  $("langSel").addEventListener("change", e => setLang(e.target.value));
+  $("countrySel").addEventListener("change", e => setCountry(e.target.value));
+  // Country-specific parameter inputs
+  document.querySelectorAll("[data-cp]").forEach(el => {
+    const obj = el.dataset.cp, k = el.dataset.k;
+    const h = () => { state[obj][k] = el.value === "" ? 0 : +el.value; saveState(); renderAll(); };
+    el.addEventListener("input", h); el.addEventListener("change", h);
   });
 
   // Health plan editor delegation
@@ -1370,12 +1806,12 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
 $("resetBtn").addEventListener("click", () => {
   if (!confirm("Reset all inputs and parameters to default US values? (Saved candidates and API key are kept.)")) return;
   state = JSON.parse(JSON.stringify(DEFAULTS));
-  state.proposalText = DEFAULT_TEMPLATE;
-  saveState(); hydrateInputs(); renderHealthPlansParams(); refreshHealthSelect(); renderAll();
+  state.proposalText = defaultTemplate();
+  saveState(); buildCountrySelect(); hydrateInputs(); applyI18n(); applyCountryUI(); renderHealthPlansParams(); refreshHealthSelect(); renderCandidates(); renderAll();
   toast("Reset to defaults", "ok");
 });
 $("fillTemplateBtn").addEventListener("click", () => {
-  $("proposalText").value = DEFAULT_TEMPLATE; state.proposalText = DEFAULT_TEMPLATE; saveState(); renderProposal();
+  $("proposalText").value = defaultTemplate(); state.proposalText = defaultTemplate(); saveState(); renderProposal();
   toast("Template reset", "ok");
 });
 $("insertNumbersBtn").addEventListener("click", () => {
@@ -1403,8 +1839,11 @@ if (!localStorage.getItem(WELCOME_KEY)) showWelcome();
 
 /* ---------- Init ---------- */
 buildStateDropdown();
+buildCountrySelect();
 hydrateInputs();
 bindInputs();
+applyI18n();
+applyCountryUI();
 renderHealthPlansParams();
 refreshHealthSelect();
 renderBracketDump();
