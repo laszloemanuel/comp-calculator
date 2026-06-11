@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>US Compensation Package Calculator</title>
+<style>
+  :root {
+    --bg: #f4f7fb;
+    --panel: #ffffff;
+    --panel-2: #eef3f9;
+    --panel-3: #f8fafc;
+    --border: #dde5ef;
+    --text: #1d2733;
+    --muted: #687889;
+    --accent: #2563eb;
+    --accent-2: #1d4ed8;
+    --accent-soft: #e7efff;
+    --green: #15a34a;
+    --green-soft: #e6f6ec;
+    --amber: #d97706;
+    --amber-soft: #fdf1e3;
+    --blue-soft: #e7efff;
+    --purple: #7c3aed;
+    --red: #dc2626;
+    --input-bg: #ffffff;
+    --shadow: 0 1px 3px rgba(20,40,80,.06), 0 1px 2px rgba(20,40,80,.04);
+    --shadow-lg: 0 8px 30px rgba(20,40,80,.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: -.01em; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 12px 16px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  main { padding: 24px; max-width: 1240px; margin: 0 auto; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .grid { display: grid; gap: 20px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 900px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { font-size: 15px; margin: 0 0 14px; font-weight: 700; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .card h3 { font-size: 12px; margin: 18px 0 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .field .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  input[type="text"], input[type="number"], input[type="password"], select, textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .inline { display: flex; gap: 8px; align-items: center; }
+  .inline > input, .inline > select { flex: 1; }
+  .inline .suffix { flex: 0 0 auto; color: var(--muted); font-size: 12px; }
+  .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid var(--border); gap: 12px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .label { color: var(--muted); }
+  .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .row.total { border-top: 2px solid var(--border); margin-top: 6px; padding-top: 12px; font-size: 15px; }
+  .row.total .val { font-weight: 700; }
+  .stat { background: var(--panel-3); border:1px solid var(--border); border-radius:9px; padding:12px 14px; }
+  .stat .lbl { color: var(--muted); font-size:12px; }
+  .big { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 2px 0; letter-spacing:-.02em; }
+  .big.green { color: var(--green); }
+  .big.blue { color: var(--accent); }
+  .big.amber { color: var(--amber); }
+  .pill {
+    display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight:600;
+    background: var(--accent-soft); color: var(--accent-2);
+  }
+  button.btn {
+    background: var(--accent); color: #fff; border: none; padding: 9px 15px;
+    border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  button.btn:hover { background: var(--accent-2); }
+  button.btn.ghost { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+  button.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+  button.btn.sm { padding: 5px 10px; font-size: 12px; }
+  button.btn.danger { color: var(--red); }
+  button.btn.danger:hover { border-color: var(--red); background:#fef2f2; }
+  button.btn:disabled { opacity: .5; cursor: not-allowed; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .spacer { flex: 1; }
+  .muted { color: var(--muted); }
+  .note { font-size: 12px; color: var(--muted); background: var(--panel-2); padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--accent); }
+  .bar { height: 22px; border-radius: 5px; display: flex; overflow: hidden; margin: 12px 0 8px; background: var(--panel-2); }
+  .bar > div { height: 100%; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; margin-top: 6px; }
+  .legend span { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  textarea.proposal { min-height: 480px; resize: vertical; font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 13px; line-height: 1.6; }
+  .proposal-preview {
+    background: #fff; color: #1a1a1a; padding: 38px; border-radius: 8px; border:1px solid var(--border);
+    min-height: 480px; font-size: 14px; line-height: 1.7;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  .proposal-preview h1 { font-size: 24px; border-bottom: 2px solid #e5e5e5; padding-bottom: 8px; }
+  .proposal-preview h2 { font-size: 18px; margin-top: 24px; }
+  .proposal-preview table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  .proposal-preview td, .proposal-preview th { border: 1px solid #e2e2e2; padding: 7px 11px; text-align: left; }
+  .proposal-preview th { background: #f6f8fa; }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: var(--panel);
+    border: 1px solid var(--border); padding: 12px 18px; border-radius: 10px;
+    box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(10px);
+    transition: all .25s; z-index: 100; max-width: 380px; font-weight:500;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.err { border-left:4px solid var(--red); }
+  .toast.ok { border-left:4px solid var(--green); }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--accent); font-size: 13px; font-weight:500; }
+  code.tok { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-size: 12px; color: var(--accent-2); }
+
+  /* health plan editor rows */
+  .plan-head, .plan-row { display:grid; grid-template-columns: 1.4fr 1fr 1fr .8fr 32px; gap:8px; align-items:center; }
+  .plan-head { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; padding:0 2px; }
+  .plan-row { margin-bottom:8px; }
+  .plan-row .icon-btn { background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--red);height:34px;font-size:14px; }
+  .plan-row .icon-btn:hover { background:#fef2f2; }
+
+  /* candidates */
+  .cand-card { border:1px solid var(--border); border-radius:10px; padding:0; margin-bottom:16px; overflow:hidden; box-shadow:var(--shadow); background:var(--panel); }
+  .cand-head { padding:14px 18px; display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; background:var(--panel-3); border-bottom:1px solid var(--border); }
+  .cand-head .avatar { width:42px; height:42px; border-radius:50%; background:var(--accent-soft); color:var(--accent-2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex:0 0 auto; }
+  .cand-meta { display:flex; gap:8px 16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:4px; }
+  .cand-meta b { color:var(--text); font-weight:600; }
+  .hist-list { padding: 6px 18px 14px; }
+  .hist-item { display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .hist-item:last-child { border-bottom:none; }
+  .hist-when { font-size:12px; color:var(--muted); min-width:150px; }
+  .hist-sum { display:flex; gap:6px 14px; flex-wrap:wrap; font-size:12px; }
+  .hist-sum b { font-variant-numeric:tabular-nums; }
+  .empty { text-align:center; color:var(--muted); padding:50px 20px; }
+  .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; background:var(--panel-2); color:var(--muted); }
+  @media print { body * { visibility:hidden; } }
+  footer { max-width:1240px; margin:0 auto; padding:24px; color:var(--muted); font-size:12px; line-height:1.6; border-top:1px solid var(--border); }
+  footer a { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>US Compensation Package Calculator</h1>
+    <div class="sub">Net · Gross · Full company cost · Subcontractor rate · Candidates &amp; history · Proposals</div>
+  </div>
+  <div class="toolbar" style="margin:0">
+    <button class="btn ghost" id="resetBtn">Reset defaults</button>
+    <span class="muted" id="savedNote" style="font-size:12px"></span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="calc">Compensation</button>
+  <button class="tab" data-tab="sub">Subcontractor Rate</button>
+  <button class="tab" data-tab="candidates">Candidates</button>
+  <button class="tab" data-tab="params">Parameters</button>
+  <button class="tab" data-tab="proposal">Proposal</button>
+</div>
+
+<main>
+  <!-- ============ COMPENSATION ============ -->
+  <section class="view active" id="view-calc">
+    <div class="grid cols-2">
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <h2>Candidate details</h2>
+          <div class="field">
+            <label>Name</label>
+            <input type="text" id="candidateName" placeholder="e.g. Jane Doe — Senior Engineer" />
+          </div>
+          <div class="grid cols-3" style="gap:12px">
+            <div class="field">
+              <label>State of residence</label>
+              <select id="candidateState"></select>
+              <div class="hint" id="stateRateHint"></div>
+            </div>
+            <div class="field">
+              <label>Age</label>
+              <input type="number" id="candidateAge" />
+            </div>
+            <div class="field">
+              <label>Marital status</label>
+              <select id="maritalStatus">
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Children / dependents</label>
+              <input type="number" id="children" />
+            </div>
+            <div class="field" style="grid-column: span 2">
+              <label>Notes</label>
+              <input type="text" id="candidateNotes" placeholder="Relocation, visa, prior comp…" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Package elements</h2>
+          <div class="field">
+            <label>Base salary (annual, gross)</label>
+            <div class="inline"><span class="suffix">$</span><input type="number" id="baseSalary" /></div>
+          </div>
+          <div class="field">
+            <label>Annual bonus</label>
+            <div class="inline">
+              <input type="number" id="bonusValue" />
+              <select id="bonusType" style="max-width:120px">
+                <option value="pct">% of base</option>
+                <option value="fixed">$ fixed</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Employee 401(k) contribution (% of base, pre-tax)</label>
+            <div class="inline"><input type="number" id="emp401kPct" /><span class="suffix">%</span></div>
+            <div class="hint">Reduces income tax, not FICA. Employer match set in Parameters.</div>
+          </div>
+
+          <h3>Health insurance</h3>
+          <div class="field">
+            <label><input type="checkbox" id="includeHealth" style="width:auto;margin-right:6px" />Include employer-sponsored health plan</label>
+          </div>
+          <div class="grid cols-2" style="gap:12px">
+            <div class="field">
+              <label>Health plan</label>
+              <select id="healthPlanIndex"></select>
+            </div>
+            <div class="field">
+              <label>Coverage tier</label>
+              <select id="healthTier">
+                <option value="individual">Employee only</option>
+                <option value="family">Employee + family</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>
+          <span>Results <span class="pill" id="resBasePill"></span></span>
+          <button class="btn ghost sm" id="saveHistBtn1">💾 Save to history</button>
+        </h2>
+        <div class="grid cols-3" style="gap:12px;margin-bottom:6px">
+          <div class="stat">
+            <div class="lbl">Employee net</div>
+            <div class="big green" id="netOut">$0</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Gross comp</div>
+            <div class="big blue" id="grossOut">$0</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Full company cost</div>
+            <div class="big amber" id="fullOut">$0</div>
+          </div>
+        </div>
+
+        <div class="bar" id="costBar"></div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i>Net</span>
+          <span><i style="background:var(--accent)"></i>Employee taxes</span>
+          <span><i style="background:var(--purple)"></i>Deductions</span>
+          <span><i style="background:var(--amber)"></i>Employer add-ons</span>
+        </div>
+
+        <div id="ageNote"></div>
+
+        <h3>Employee side</h3>
+        <div id="employeeBreakdown"></div>
+
+        <h3>Employer side (full cost)</h3>
+        <div id="employerBreakdown"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SUBCONTRACTOR ============ -->
+  <section class="view" id="view-sub">
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Derive subcontractor hourly rate</h2>
+        <p class="muted" style="margin-top:0">
+          A contractor gets no paid time off, so the days an employee would take off must be
+          earned across <b>fewer billable days</b> — which raises the rate. Use the adjustment field
+          to deviate from the computed rate.
+        </p>
+        <div class="field">
+          <label>Annual package to cover (basis)</label>
+          <select id="subBasis">
+            <option value="full">Full company cost (apples-to-apples)</option>
+            <option value="gross">Gross compensation</option>
+            <option value="net">Employee net</option>
+            <option value="custom">Custom amount</option>
+          </select>
+        </div>
+        <div class="field" id="customBasisField" style="display:none">
+          <label>Custom annual amount</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="subCustomAmount" /></div>
+        </div>
+
+        <h3>Working time</h3>
+        <div class="grid cols-2" style="gap:12px">
+          <div class="field"><label>Work days / year (base)</label><input type="number" id="subWorkDays" /><div class="hint">260 = 52 weeks × 5 days</div></div>
+          <div class="field"><label>Hours / day</label><input type="number" id="subHoursDay" /></div>
+          <div class="field"><label>Paid holidays</label><input type="number" id="subHolidays" /></div>
+          <div class="field"><label>Vacation / PTO days</label><input type="number" id="subPto" /></div>
+          <div class="field"><label>Sick days</label><input type="number" id="subSick" /></div>
+          <div class="field"><label>Non-billable buffer days</label><input type="number" id="subBuffer" /><div class="hint">Admin, ramp-up, bench</div></div>
+        </div>
+
+        <div class="field">
+          <label>Rate adjustment (deviate from computed)</label>
+          <div class="inline"><input type="number" id="subAdjust" /><span class="suffix">%</span></div>
+          <div class="hint">e.g. +15% contractor premium, or −10% to discount. 0 = exact computed rate.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Result</h2>
+        <div class="stat" style="margin-bottom:14px">
+          <div class="lbl">Suggested hourly rate</div>
+          <div class="big amber" id="subRateOut">$0</div>
+          <div class="muted" style="font-size:12px" id="subRateNote"></div>
+        </div>
+
+        <div class="row"><span class="label">Package basis</span><span class="val" id="subBasisOut">$0</span></div>
+        <div class="row"><span class="label">Days off (not billable)</span><span class="val" id="subDaysOffOut">0</span></div>
+        <div class="row"><span class="label">Billable days / year</span><span class="val" id="subBillDaysOut">0</span></div>
+        <div class="row"><span class="label">Billable hours / year</span><span class="val" id="subBillHrsOut">0</span></div>
+        <div class="row"><span class="label">Computed base rate</span><span class="val" id="subBaseRateOut">$0</span></div>
+        <div class="row"><span class="label">Adjustment</span><span class="val" id="subAdjOut">0%</span></div>
+        <div class="row total"><span class="label">Hourly rate</span><span class="val" id="subRateOut2">$0</span></div>
+        <div class="row"><span class="label">Day rate (× hrs/day)</span><span class="val" id="subDayRateOut">$0</span></div>
+        <div class="row"><span class="label">Implied annual (rate × billable hrs)</span><span class="val" id="subAnnualOut">$0</span></div>
+
+        <div class="note" style="margin-top:16px">
+          The contractor must bill <span id="subEffNote"></span> to match the chosen package basis,
+          because <b id="subDaysOffNote">0</b> paid-off days an employee would get are now unpaid.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CANDIDATES ============ -->
+  <section class="view" id="view-candidates">
+    <div class="toolbar">
+      <h2 style="margin:0;font-size:16px">Saved candidates &amp; proposal history</h2>
+      <div class="spacer"></div>
+      <span class="muted" id="candCount" style="font-size:12px"></span>
+    </div>
+    <div id="candidatesList"></div>
+  </section>
+
+  <!-- ============ PARAMETERS ============ -->
+  <section class="view" id="view-params">
+    <div class="card" style="margin-bottom:20px">
+      <h2>
+        <span>Healthcare packages</span>
+        <button class="btn ghost sm" id="addPlanBtn">+ Add plan</button>
+      </h2>
+      <div class="plan-head">
+        <div>Plan name</div><div>Individual premium / yr</div><div>Family premium / yr</div><div>Employer share</div><div></div>
+      </div>
+      <div id="healthPlansList"></div>
+      <div class="field" style="margin-top:12px;max-width:340px">
+        <label>Premiums are pre-tax (Section 125)</label>
+        <select id="p_healthPretax">
+          <option value="yes">Yes (reduces income tax + FICA)</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div class="note">Add as many plans/tiers as you like. Each candidate's package picks a plan and a coverage tier on the Compensation tab.</div>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="card">
+        <h2>Employer payroll taxes</h2>
+        <div class="field"><label>Social Security rate (employer &amp; employee each)</label>
+          <div class="inline"><input type="number" id="p_ssRate" step="0.01" /><span class="suffix">%</span></div></div>
+        <div class="field"><label>Social Security wage base</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_ssWageBase" /></div></div>
+        <div class="field"><label>Medicare rate (each)</label>
+          <div class="inline"><input type="number" id="p_medRate" step="0.01" /><span class="suffix">%</span></div></div>
+        <div class="field"><label>Additional Medicare (employee, above threshold)</label>
+          <div class="inline"><input type="number" id="p_addlMed" step="0.01" /><span class="suffix">%</span></div></div>
+        <div class="field"><label>Additional Medicare threshold</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_addlMedThresh" /></div></div>
+        <div class="field"><label>FUTA effective rate</label>
+          <div class="inline"><input type="number" id="p_futaRate" step="0.01" /><span class="suffix">%</span></div></div>
+        <div class="field"><label>FUTA wage base</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_futaWageBase" /></div></div>
+        <div class="field"><label>SUTA rate</label>
+          <div class="inline"><input type="number" id="p_sutaRate" step="0.01" /><span class="suffix">%</span></div></div>
+        <div class="field"><label>SUTA wage base</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_sutaWageBase" /></div></div>
+        <div class="field"><label>Workers' comp (% of payroll)</label>
+          <div class="inline"><input type="number" id="p_workersComp" step="0.01" /><span class="suffix">%</span></div></div>
+        <div class="field"><label>Other employer cost (fixed $/yr)</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_otherEmployer" /></div>
+          <div class="hint">payroll admin, training, equipment, benefits broker</div></div>
+      </div>
+
+      <div class="card">
+        <h2>401(k) match</h2>
+        <div class="field"><label>Match rate</label>
+          <div class="inline"><input type="number" id="p_matchRate" step="1" /><span class="suffix">%</span></div>
+          <div class="hint">% of the employee's contribution the company matches</div></div>
+        <div class="field"><label>Match cap (% of base salary)</label>
+          <div class="inline"><input type="number" id="p_matchCap" step="0.5" /><span class="suffix">%</span></div>
+          <div class="hint">e.g. 50% match up to 6% of pay → max 3% of salary</div></div>
+        <div class="field"><label>Catch-up reminder age</label>
+          <div class="inline"><input type="number" id="p_catchupAge" step="1" /><span class="suffix">yrs</span></div>
+          <div class="hint">Show a 401(k) catch-up note when candidate is this age or older</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Income tax assumptions</h2>
+        <div class="field"><label>Standard deduction — Single</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_stdSingle" /></div></div>
+        <div class="field"><label>Standard deduction — MFJ</label>
+          <div class="inline"><span class="suffix">$</span><input type="number" id="p_stdMfj" /></div></div>
+        <div class="field"><label>State income tax (flat effective rate)</label>
+          <div class="inline"><input type="number" id="p_stateRate" step="0.01" /><span class="suffix">%</span></div>
+          <div class="hint">Auto-filled from the candidate's state — editable here to override.</div></div>
+        <div class="note">
+          Federal brackets are built-in (2025 single &amp; MFJ), applied progressively to taxable income
+          after the standard deduction and pre-tax deductions. Kept non-editable to keep the model honest.
+        </div>
+        <details>
+          <summary>Show built-in federal brackets</summary>
+          <div id="bracketDump" style="font-size:12px;margin-top:8px" class="muted"></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROPOSAL ============ -->
+  <section class="view" id="view-proposal">
+    <div class="toolbar">
+      <button class="btn ghost" id="fillTemplateBtn">Reset template</button>
+      <button class="btn ghost" id="insertNumbersBtn">Insert live numbers</button>
+      <button class="btn ghost" id="saveHistBtn2">💾 Save to history</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="exportMdBtn">⬇ .md</button>
+      <button class="btn ghost" id="exportHtmlBtn">⬇ .html</button>
+      <button class="btn ghost" id="printBtn">🖨 Print / PDF</button>
+      <button class="btn ghost" id="aiSettingsBtn">AI settings</button>
+      <button class="btn" id="aiGenerateBtn">✨ Generate / polish with AI</button>
+    </div>
+
+    <div class="card" id="aiSettings" style="display:none;margin-bottom:16px">
+      <h2>AI settings (Anthropic Claude)</h2>
+      <div class="grid cols-2">
+        <div class="field">
+          <label>API key (stored locally in your browser only)</label>
+          <input type="password" id="aiKey" placeholder="sk-ant-..." />
+          <div class="hint">The AI draft is <b>optional</b> — the calculator and proposal editor work fully without it. To use AI, paste your own key from <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Calls go directly from your browser to api.anthropic.com; the key is saved in this browser's localStorage only and is never sent anywhere else.</div>
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <select id="aiModel">
+            <option value="claude-opus-4-8">Claude Opus 4.8 (most capable)</option>
+            <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (balanced)</option>
+            <option value="claude-haiku-4-5">Claude Haiku 4.5 (fast/cheap)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Instruction to the AI</label>
+        <input type="text" id="aiInstruction" placeholder="e.g. Make it warmer and emphasize growth opportunity" />
+      </div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Template editor <span class="muted" style="font-size:12px;font-weight:400">— supports {{placeholders}}</span></h2>
+        <textarea class="proposal" id="proposalText"></textarea>
+        <details>
+          <summary>Available placeholders</summary>
+          <div style="margin-top:8px;font-size:12px;line-height:2" class="muted" id="placeholderList"></div>
+        </details>
+      </div>
+      <div class="card">
+        <h2>Preview</h2>
+        <div class="proposal-preview" id="proposalPreview"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <b>Estimates only.</b> Net pay uses 2025 federal brackets, a flat effective state rate, and the standard
+  deduction — it ignores credits, local taxes, and individual elections. This tool is for offer modeling and
+  is <b>not</b> tax, legal, or financial advice. Verify figures with a qualified payroll/tax professional
+  before making or accepting an offer.
+  &nbsp;·&nbsp; <b>Your data stays on your device:</b> all inputs, candidates, and your optional API key are
+  stored only in this browser (localStorage) and are never uploaded.
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================================================================
+   US Compensation Package Calculator — single-file app, no dependencies.
+   Light theme · candidate model · configurable health plans · history · export.
+   ======================================================================== */
+
+// 2025 federal income tax brackets (built-in). [upTo, rate]
+const FED_BRACKETS = {
+  single: [
+    [11925, 0.10], [48475, 0.12], [103350, 0.22], [197300, 0.24],
+    [250525, 0.32], [626350, 0.35], [Infinity, 0.37]
+  ],
+  mfj: [
+    [23850, 0.10], [96950, 0.12], [206700, 0.22], [394600, 0.24],
+    [501050, 0.32], [751600, 0.35], [Infinity, 0.37]
+  ]
+};
+
+// Approximate flat/effective state income tax rates (%). Editable per-candidate.
+const STATE_TAX = {
+  AL:5.0, AK:0, AZ:2.5, AR:4.4, CA:9.3, CO:4.4, CT:5.5, DE:6.6, DC:8.5, FL:0,
+  GA:5.39, HI:8.25, ID:5.8, IL:4.95, IN:3.15, IA:5.7, KS:5.7, KY:4.0, LA:4.25,
+  ME:7.15, MD:5.75, MA:5.0, MI:4.25, MN:7.85, MS:4.7, MO:4.8, MT:5.9, NE:5.84,
+  NV:0, NH:0, NJ:6.37, NM:4.9, NY:6.85, NC:4.5, ND:2.5, OH:3.5, OK:4.75, OR:8.75,
+  PA:3.07, RI:4.75, SC:6.4, SD:0, TN:0, TX:0, UT:4.65, VT:6.6, VA:5.75, WA:0,
+  WV:5.12, WI:5.3, WY:0
+};
+const STATE_NAMES = {
+  AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",
+  CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",
+  HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",
+  LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",
+  MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",
+  NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",
+  OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",
+  SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",
+  WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"
+};
+
+const DEFAULT_PLANS = [
+  { name: "Basic HMO",    premiumIndividual: 6000,  premiumFamily: 16000, employerShare: 75 },
+  { name: "Standard PPO", premiumIndividual: 9000,  premiumFamily: 22000, employerShare: 80 },
+  { name: "Premium PPO",  premiumIndividual: 13000, premiumFamily: 30000, employerShare: 85 }
+];
+
+const DEFAULTS = {
+  // candidate
+  candidateName: "", candidateState: "CA", candidateAge: 35,
+  maritalStatus: "single", children: 0, candidateNotes: "",
+  // package
+  baseSalary: 120000, bonusValue: 10, bonusType: "pct", emp401kPct: 6,
+  includeHealth: true, healthPlanIndex: 1, healthTier: "individual",
+  // parameters — payroll taxes
+  ssRate: 6.2, ssWageBase: 176100,
+  medRate: 1.45, addlMed: 0.9, addlMedThresh: 200000,
+  futaRate: 0.6, futaWageBase: 7000,
+  sutaRate: 2.7, sutaWageBase: 7000,
+  workersComp: 0.5, otherEmployer: 1500,
+  matchRate: 50, matchCap: 6, catchupAge: 50,
+  healthPretax: "yes",
+  stdSingle: 15000, stdMfj: 30000, stateRate: 9.3,
+  healthPlans: JSON.parse(JSON.stringify(DEFAULT_PLANS)),
+  // subcontractor
+  subBasis: "full", subCustomAmount: 200000,
+  subWorkDays: 260, subHoursDay: 8, subHolidays: 11, subPto: 15, subSick: 5, subBuffer: 0, subAdjust: 0,
+  // AI
+  aiModel: "claude-opus-4-8", aiInstruction: "",
+  // proposal
+  proposalText: ""
+};
+
+const STORAGE_KEY = "compCalcState_v2";
+const KEY_STORAGE = "compCalcApiKey_v1";
+const CAND_STORAGE = "compCalcCandidates_v1";
+
+let state = loadState();
+let candidates = loadCandidates();
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const s = Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), saved);
+    if (!Array.isArray(s.healthPlans) || !s.healthPlans.length)
+      s.healthPlans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+    return s;
+  } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const n = document.getElementById("savedNote");
+  n.textContent = "Saved ✓";
+  clearTimeout(saveState._t);
+  saveState._t = setTimeout(() => { n.textContent = ""; }, 1200);
+}
+function loadCandidates() {
+  try { return JSON.parse(localStorage.getItem(CAND_STORAGE) || "[]"); } catch (e) { return []; }
+}
+function saveCandidates() { localStorage.setItem(CAND_STORAGE, JSON.stringify(candidates)); }
+
+const $ = id => document.getElementById(id);
+const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
+const fmt2 = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const escHtml = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const escAttr = t => String(t).replace(/"/g,"&quot;").replace(/</g,"&lt;");
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const filingOf = s => s.maritalStatus === "married" ? "mfj" : "single";
+
+/* ---------- Tax helpers ---------- */
+function progressiveTax(taxable, brackets) {
+  if (taxable <= 0) return 0;
+  let tax = 0, last = 0;
+  for (const [upTo, rate] of brackets) {
+    if (taxable > last) { tax += (Math.min(taxable, upTo) - last) * rate; last = upTo; }
+    else break;
+  }
+  return tax;
+}
+
+/* ---------- Core calculation ---------- */
+function calc() {
+  const s = state;
+  const base = +s.baseSalary || 0;
+  const bonus = s.bonusType === "pct" ? base * (+s.bonusValue || 0) / 100 : (+s.bonusValue || 0);
+  const gross = base + bonus;
+  const filing = filingOf(s);
+
+  const emp401k = base * (+s.emp401kPct || 0) / 100;
+
+  // Health plan selection
+  let healthTotal = 0, employerShare = 80, planName = "—";
+  const plan = s.healthPlans[s.healthPlanIndex];
+  if (s.includeHealth && plan) {
+    healthTotal = s.healthTier === "family" ? (+plan.premiumFamily || 0) : (+plan.premiumIndividual || 0);
+    employerShare = +plan.employerShare || 0;
+    planName = plan.name;
+  }
+  const employerHealth = healthTotal * employerShare / 100;
+  const employeeHealth = healthTotal - employerHealth;
+  const healthPretax = s.healthPretax === "yes";
+
+  const ficaWages = gross - (healthPretax ? employeeHealth : 0);
+
+  const stdDed = filing === "mfj" ? (+s.stdMfj || 0) : (+s.stdSingle || 0);
+  const preTaxDeductions = emp401k + (healthPretax ? employeeHealth : 0);
+  const fedTaxable = Math.max(0, gross - preTaxDeductions - stdDed);
+  const federalTax = progressiveTax(fedTaxable, FED_BRACKETS[filing]);
+  const stateTaxable = Math.max(0, gross - preTaxDeductions);
+  const stateTax = stateTaxable * (+s.stateRate || 0) / 100;
+
+  const ss = Math.min(ficaWages, +s.ssWageBase || 0) * (+s.ssRate || 0) / 100;
+  let medicare = ficaWages * (+s.medRate || 0) / 100;
+  if (ficaWages > (+s.addlMedThresh || 0))
+    medicare += (ficaWages - (+s.addlMedThresh)) * (+s.addlMed || 0) / 100;
+
+  const net = gross - emp401k - employeeHealth - federalTax - stateTax - ss - medicare;
+
+  const empSS = ss;
+  const empMedicare = ficaWages * (+s.medRate || 0) / 100;
+  const futa = Math.min(gross, +s.futaWageBase || 0) * (+s.futaRate || 0) / 100;
+  const suta = Math.min(gross, +s.sutaWageBase || 0) * (+s.sutaRate || 0) / 100;
+  const workersComp = gross * (+s.workersComp || 0) / 100;
+  const employer401k = Math.min(emp401k * (+s.matchRate || 0) / 100, base * (+s.matchCap || 0) / 100);
+  const otherEmployer = +s.otherEmployer || 0;
+
+  const employerAddOns = empSS + empMedicare + futa + suta + workersComp + employer401k + employerHealth + otherEmployer;
+  const fullCost = gross + employerAddOns;
+
+  return {
+    base, bonus, gross, emp401k, employeeHealth, employerHealth, healthTotal, planName, filing,
+    federalTax, stateTax, ss, medicare, net,
+    empSS, empMedicare, futa, suta, workersComp, employer401k, otherEmployer,
+    employerAddOns, fullCost
+  };
+}
+
+/* ---------- Render compensation ---------- */
+function renderCalc() {
+  const r = calc();
+  $("netOut").textContent = fmt(r.net);
+  $("grossOut").textContent = fmt(r.gross);
+  $("fullOut").textContent = fmt(r.fullCost);
+  $("resBasePill").textContent = state.candidateName || "";
+
+  const age = +state.candidateAge || 0;
+  $("ageNote").innerHTML = (age >= (+state.catchupAge || 50))
+    ? `<div class="note" style="margin-top:10px">Candidate is ${age} — eligible for <b>401(k) catch-up contributions</b>. Consider a higher deferral in the offer narrative.</div>` : "";
+
+  const employeeTaxes = r.federalTax + r.stateTax + r.ss + r.medicare;
+  const deductions = r.emp401k + r.employeeHealth;
+  const tot = r.fullCost || 1;
+  $("costBar").innerHTML =
+    seg(r.net, tot, "var(--green)") +
+    seg(employeeTaxes, tot, "var(--accent)") +
+    seg(deductions, tot, "var(--purple)") +
+    seg(r.employerAddOns, tot, "var(--amber)");
+
+  $("employeeBreakdown").innerHTML = [
+    row("Base salary", fmt(r.base)),
+    row("Bonus", fmt(r.bonus)),
+    row("Gross", fmt(r.gross), "subtotal"),
+    row("− 401(k) employee", "−" + fmt(r.emp401k)),
+    row("− Health premium (" + r.planName + ")", "−" + fmt(r.employeeHealth)),
+    row("− Federal income tax", "−" + fmt(r.federalTax)),
+    row("− State income tax", "−" + fmt(r.stateTax)),
+    row("− Social Security", "−" + fmt(r.ss)),
+    row("− Medicare", "−" + fmt(r.medicare)),
+    row("Net take-home", fmt(r.net), "total")
+  ].join("");
+
+  $("employerBreakdown").innerHTML = [
+    row("Gross compensation", fmt(r.gross)),
+    row("+ Employer Social Security", fmt(r.empSS)),
+    row("+ Employer Medicare", fmt(r.empMedicare)),
+    row("+ FUTA", fmt(r.futa)),
+    row("+ SUTA", fmt(r.suta)),
+    row("+ Workers' comp", fmt(r.workersComp)),
+    row("+ 401(k) match", fmt(r.employer401k)),
+    row("+ Health (employer share)", fmt(r.employerHealth)),
+    row("+ Other employer cost", fmt(r.otherEmployer)),
+    row("Full company cost", fmt(r.fullCost), "total")
+  ].join("");
+}
+function seg(v, tot, color) {
+  const w = Math.max(0, v / tot * 100);
+  return `<div style="width:${w}%;background:${color}" title="${fmt(v)}"></div>`;
+}
+function row(label, val, cls = "") {
+  const c = cls === "total" ? " total" : "";
+  const lstyle = cls === "subtotal" ? ' style="font-weight:700;color:var(--text)"' : "";
+  return `<div class="row${c}"><span class="label"${lstyle}>${label}</span><span class="val">${val}</span></div>`;
+}
+
+/* ---------- Subcontractor ---------- */
+function renderSub() {
+  const s = state, r = calc();
+  let basis;
+  if (s.subBasis === "full") basis = r.fullCost;
+  else if (s.subBasis === "gross") basis = r.gross;
+  else if (s.subBasis === "net") basis = r.net;
+  else basis = +s.subCustomAmount || 0;
+  $("customBasisField").style.display = s.subBasis === "custom" ? "" : "none";
+
+  const daysOff = (+s.subHolidays || 0) + (+s.subPto || 0) + (+s.subSick || 0) + (+s.subBuffer || 0);
+  const billDays = Math.max(1, (+s.subWorkDays || 0) - daysOff);
+  const billHrs = billDays * (+s.subHoursDay || 0);
+  const baseRate = billHrs > 0 ? basis / billHrs : 0;
+  const adj = +s.subAdjust || 0;
+  const rate = baseRate * (1 + adj / 100);
+  const dayRate = rate * (+s.subHoursDay || 0);
+  const annual = rate * billHrs;
+
+  $("subRateOut").textContent = fmt2(rate) + "/hr";
+  $("subRateOut2").textContent = fmt2(rate) + "/hr";
+  $("subRateNote").textContent = `Covers ${labelFor(s.subBasis)} of ${fmt(basis)} across ${billDays} billable days.`;
+  $("subBasisOut").textContent = fmt(basis);
+  $("subDaysOffOut").textContent = daysOff + " days";
+  $("subBillDaysOut").textContent = billDays + " days";
+  $("subBillHrsOut").textContent = Math.round(billHrs).toLocaleString() + " hrs";
+  $("subBaseRateOut").textContent = fmt2(baseRate) + "/hr";
+  $("subAdjOut").textContent = (adj >= 0 ? "+" : "") + adj + "%";
+  $("subDayRateOut").textContent = fmt2(dayRate);
+  $("subAnnualOut").textContent = fmt(annual);
+  $("subEffNote").textContent = `${Math.round(billHrs).toLocaleString()} hours`;
+  $("subDaysOffNote").textContent = daysOff;
+}
+function labelFor(b) {
+  return { full: "full company cost", gross: "gross compensation", net: "employee net", custom: "the custom amount" }[b] || b;
+}
+
+/* ---------- Health plan editor (Parameters) ---------- */
+function renderHealthPlansParams() {
+  const c = $("healthPlansList");
+  c.innerHTML = state.healthPlans.map((p, i) => `
+    <div class="plan-row" data-i="${i}">
+      <input data-f="name" type="text" value="${escAttr(p.name)}" />
+      <div class="inline"><span class="suffix">$</span><input data-f="premiumIndividual" type="number" value="${p.premiumIndividual}" /></div>
+      <div class="inline"><span class="suffix">$</span><input data-f="premiumFamily" type="number" value="${p.premiumFamily}" /></div>
+      <div class="inline"><input data-f="employerShare" type="number" value="${p.employerShare}" /><span class="suffix">%</span></div>
+      <button class="icon-btn del" data-i="${i}" title="Remove plan">✕</button>
+    </div>`).join("");
+}
+function refreshHealthSelect() {
+  const sel = $("healthPlanIndex");
+  sel.innerHTML = state.healthPlans.map((p, i) =>
+    `<option value="${i}">${escHtml(p.name)}</option>`).join("");
+  if (+state.healthPlanIndex >= state.healthPlans.length) state.healthPlanIndex = 0;
+  sel.value = state.healthPlanIndex;
+}
+
+/* ---------- Candidates & history ---------- */
+function candidateInfo() {
+  return {
+    name: (state.candidateName || "").trim(),
+    state: state.candidateState,
+    age: state.candidateAge,
+    maritalStatus: state.maritalStatus,
+    children: state.children,
+    notes: state.candidateNotes
+  };
+}
+function saveToHistory() {
+  const name = (state.candidateName || "").trim();
+  if (!name) { toast("Enter a candidate name first.", "err"); switchTab("calc"); $("candidateName").focus(); return; }
+  const r = calc();
+  const entry = {
+    id: uid(),
+    timestamp: Date.now(),
+    proposalText: $("proposalText").value,
+    snapshot: JSON.parse(JSON.stringify(state)),
+    summary: { base: r.base, gross: r.gross, net: r.net, full: r.fullCost, plan: r.planName, tier: state.healthTier }
+  };
+  let cand = candidates.find(c => c.name.toLowerCase() === name.toLowerCase());
+  if (!cand) { cand = Object.assign({ id: uid() }, candidateInfo(), { history: [] }); candidates.unshift(cand); }
+  else Object.assign(cand, candidateInfo());
+  cand.history.unshift(entry);
+  saveCandidates();
+  renderCandidates();
+  toast(`Saved to ${name}'s history ✓`, "ok");
+}
+function renderCandidates() {
+  const list = $("candidatesList");
+  $("candCount").textContent = candidates.length
+    ? `${candidates.length} candidate${candidates.length > 1 ? "s" : ""}, ${candidates.reduce((a, c) => a + c.history.length, 0)} saved generations`
+    : "";
+  if (!candidates.length) {
+    list.innerHTML = `<div class="card empty">No candidates saved yet.<br><span style="font-size:13px">Fill in a candidate on the Compensation tab, then press <b>💾 Save to history</b>.</span></div>`;
+    return;
+  }
+  list.innerHTML = candidates.map(c => {
+    const initials = (c.name || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    const meta = [
+      c.state ? `<b>${STATE_NAMES[c.state] || c.state}</b>` : "",
+      c.age ? `${c.age} yrs` : "",
+      c.maritalStatus === "married" ? "Married" : "Single",
+      (+c.children > 0) ? `${c.children} child${+c.children > 1 ? "ren" : ""}` : "No children",
+      c.notes ? `<span class="badge">${escHtml(c.notes)}</span>` : ""
+    ].filter(Boolean).join("");
+    const hist = c.history.map(h => `
+      <div class="hist-item">
+        <div class="hist-when">${new Date(h.timestamp).toLocaleString()}</div>
+        <div class="hist-sum">
+          <span>Base <b>${fmt(h.summary.base)}</b></span>
+          <span>Gross <b>${fmt(h.summary.gross)}</b></span>
+          <span>Net <b>${fmt(h.summary.net)}</b></span>
+          <span>Cost <b>${fmt(h.summary.full)}</b></span>
+          <span class="badge">${escHtml(h.summary.plan)} · ${h.summary.tier}</span>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn ghost sm" data-act="load" data-c="${c.id}" data-h="${h.id}">Load</button>
+        <button class="btn ghost sm" data-act="exp" data-c="${c.id}" data-h="${h.id}">Export</button>
+        <button class="btn ghost sm danger" data-act="delh" data-c="${c.id}" data-h="${h.id}">Delete</button>
+      </div>`).join("");
+    return `
+      <div class="cand-card">
+        <div class="cand-head">
+          <div class="avatar">${escHtml(initials)}</div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:700;font-size:15px">${escHtml(c.name)}</div>
+            <div class="cand-meta">${meta}</div>
+          </div>
+          <button class="btn ghost sm danger" data-act="delc" data-c="${c.id}">Delete candidate</button>
+        </div>
+        <div class="hist-list">${hist || '<div class="muted" style="padding:10px 0">No generations saved.</div>'}</div>
+      </div>`;
+  }).join("");
+}
+function findEntry(cid, hid) {
+  const c = candidates.find(x => x.id === cid);
+  if (!c) return {};
+  return { c, h: c.history.find(x => x.id === hid) };
+}
+function loadHistoryEntry(cid, hid) {
+  const { h } = findEntry(cid, hid);
+  if (!h) return;
+  state = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), h.snapshot);
+  if (!Array.isArray(state.healthPlans) || !state.healthPlans.length)
+    state.healthPlans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+  state.proposalText = h.proposalText;
+  saveState();
+  hydrateInputs();
+  renderHealthPlansParams();
+  refreshHealthSelect();
+  renderAll();
+  switchTab("proposal");
+  toast("Loaded snapshot — package, parameters and proposal restored.", "ok");
+}
+
+/* ---------- Proposal ---------- */
+function proposalVars() {
+  const r = calc(), s = state;
+  return {
+    candidate_name: s.candidateName || "[Candidate]",
+    candidate_state: STATE_NAMES[s.candidateState] || s.candidateState || "—",
+    candidate_age: String(s.candidateAge || "—"),
+    marital_status: s.maritalStatus === "married" ? "Married" : "Single",
+    children: String(s.children || 0),
+    base_salary: fmt(r.base),
+    bonus: fmt(r.bonus),
+    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% of base salary` : `${fmt(r.bonus)} fixed`,
+    gross: fmt(r.gross),
+    net: fmt(r.net),
+    full_cost: fmt(r.fullCost),
+    employer_401k: fmt(r.employer401k),
+    employer_health: fmt(r.employerHealth),
+    health_total: fmt(r.healthTotal),
+    health_plan: r.planName,
+    health_tier: s.healthTier === "family" ? "Employee + family" : "Employee only",
+    emp_401k_pct: s.emp401kPct + "%",
+    date: new Date().toISOString().slice(0, 10)
+  };
+}
+function applyPlaceholders(text) {
+  const vars = proposalVars();
+  return text.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in vars ? vars[k] : m));
+}
+const DEFAULT_TEMPLATE = `# Compensation Proposal
+
+**Prepared for:** {{candidate_name}}
+**Location:** {{candidate_state}}
+**Date:** {{date}}
+
+Dear {{candidate_name}},
+
+We are delighted to extend the following compensation package. We believe it reflects
+both the value you bring and our commitment to your growth.
+
+## Total Package Summary
+
+| Component | Annual Value |
+|---|---|
+| Base salary | {{base_salary}} |
+| Target bonus ({{bonus_desc}}) | {{bonus}} |
+| 401(k) employer match | {{employer_401k}} |
+| Health insurance — {{health_plan}} ({{health_tier}}) | {{employer_health}} |
+| **Estimated gross compensation** | **{{gross}}** |
+
+## What This Means For You
+
+- A competitive **base salary of {{base_salary}}**, paid on a regular cycle.
+- A **performance bonus** targeted at {{bonus_desc}}.
+- A **401(k) plan** with an employer match of up to {{employer_401k}} per year.
+- The **{{health_plan}}** health plan ({{health_tier}}), with the company covering
+  {{employer_health}} of the annual premium on your behalf.
+- Your estimated **net take-home pay** is approximately {{net}} per year, before
+  individual elections and credits.
+
+## Next Steps
+
+We would be thrilled to welcome you to the team. Please review the details above and let us
+know if you have any questions. This offer is valid for 14 days from the date above.
+
+Warm regards,
+
+The Hiring Team
+`;
+
+function renderProposal() {
+  $("proposalPreview").innerHTML = mdToHtml(applyPlaceholders($("proposalText").value));
+}
+
+// minimal markdown → HTML
+function mdToHtml(md) {
+  const esc = escHtml;
+  const lines = md.split("\n");
+  let html = "", i = 0;
+  function inline(t) { return t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>"); }
+  function renderTable(rows) {
+    const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+    let out = "<table><tr>" + cells(rows[0]).map(c => `<th>${inline(esc(c))}</th>`).join("") + "</tr>";
+    for (let r = 1; r < rows.length; r++) {
+      if (/^\|?[\s:\-]+\|/.test(rows[r])) continue;
+      out += "<tr>" + cells(rows[r]).map(c => `<td>${inline(esc(c))}</td>`).join("") + "</tr>";
+    }
+    return out + "</table>";
+  }
+  while (i < lines.length) {
+    let line = lines[i];
+    if (/^\|(.+)\|$/.test(line.trim())) {
+      const tbl = [];
+      while (i < lines.length && /^\|(.+)\|$/.test(lines[i].trim())) { tbl.push(lines[i]); i++; }
+      html += renderTable(tbl); continue;
+    }
+    if (/^#\s/.test(line)) { html += `<h1>${inline(esc(line.replace(/^#\s/, "")))}</h1>`; i++; continue; }
+    if (/^##\s/.test(line)) { html += `<h2>${inline(esc(line.replace(/^##\s/, "")))}</h2>`; i++; continue; }
+    if (/^[-*]\s/.test(line)) {
+      html += "<ul>";
+      while (i < lines.length && /^[-*]\s/.test(lines[i])) { html += `<li>${inline(esc(lines[i].replace(/^[-*]\s/, "")))}</li>`; i++; }
+      html += "</ul>"; continue;
+    }
+    if (line.trim() === "") { i++; continue; }
+    let para = line; i++;
+    while (i < lines.length && lines[i].trim() !== "" && !/^[#\-*|]/.test(lines[i])) { para += " " + lines[i]; i++; }
+    html += `<p>${inline(esc(para))}</p>`;
+  }
+  return html;
+}
+
+/* ---------- Export ---------- */
+function htmlDoc(md, title) {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escHtml(title || "Compensation Proposal")}</title>
+<style>body{font-family:Georgia,'Times New Roman',serif;max-width:780px;margin:40px auto;padding:0 24px;color:#1a1a1a;line-height:1.7}
+h1{font-size:26px;border-bottom:2px solid #e5e5e5;padding-bottom:8px}h2{font-size:19px;margin-top:26px}
+table{border-collapse:collapse;width:100%;margin:14px 0}td,th{border:1px solid #ddd;padding:8px 12px;text-align:left}th{background:#f6f8fa}
+@media print{body{margin:0}}</style></head><body>${mdToHtml(md)}</body></html>`;
+}
+function download(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+}
+function exportProposal(format, mdOverride, nameOverride) {
+  const md = mdOverride != null ? applyPlaceholdersStatic(mdOverride) : applyPlaceholders($("proposalText").value);
+  const base = (nameOverride || state.candidateName || "proposal").replace(/[^\w]+/g, "_").replace(/^_+|_+$/g, "") || "proposal";
+  if (format === "md") { download(base + ".md", md, "text/markdown"); toast("Markdown exported ✓", "ok"); }
+  else if (format === "html") { download(base + ".html", htmlDoc(md, base), "text/html"); toast("HTML exported ✓", "ok"); }
+  else if (format === "print") {
+    const w = window.open("", "_blank");
+    if (!w) { toast("Pop-up blocked — allow pop-ups to print.", "err"); return; }
+    w.document.write(htmlDoc(md, base)); w.document.close(); w.focus();
+    setTimeout(() => w.print(), 350);
+  }
+}
+// for history exports the text is already resolved or contains placeholders we resolve against current vars
+function applyPlaceholdersStatic(text) { return applyPlaceholders(text); }
+
+/* ---------- AI generation ---------- */
+async function generateWithAI() {
+  const key = localStorage.getItem(KEY_STORAGE) || $("aiKey").value.trim();
+  if (!key) { toast("Enter your Anthropic API key in AI settings first.", "err"); $("aiSettings").style.display = ""; return; }
+  const btn = $("aiGenerateBtn");
+  btn.disabled = true; btn.textContent = "Generating…";
+
+  const vars = proposalVars();
+  const current = $("proposalText").value;
+  const instruction = state.aiInstruction || "Improve clarity, warmth, and professionalism. Keep all numbers exactly as given.";
+  const sys = "You are an expert HR compensation writer for a US legal entity. " +
+    "You write clear, warm, professional compensation proposals in GitHub-flavored Markdown " +
+    "(headings, bold, tables, bullet lists). Never invent or alter any monetary figures or personal " +
+    "details — use only the data provided. Return ONLY the proposal markdown, no commentary.";
+  const userMsg =
+    "Verified candidate & package data (do not change any value):\n" + JSON.stringify(vars, null, 2) +
+    "\n\nCurrent draft to revise (may be empty):\n---\n" + current +
+    "\n---\n\nInstruction: " + instruction + "\n\nProduce the full proposal in Markdown.";
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: state.aiModel || "claude-opus-4-8",
+        max_tokens: 4000,
+        system: sys,
+        messages: [{ role: "user", content: userMsg }]
+      })
+    });
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      let msg = resp.status + " " + resp.statusText;
+      try { const j = JSON.parse(errTxt); if (j.error && j.error.message) msg = j.error.message; } catch (e) {}
+      throw new Error(msg);
+    }
+    const data = await resp.json();
+    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+    if (text) { $("proposalText").value = text; state.proposalText = text; saveState(); renderProposal(); toast("Proposal generated ✓", "ok"); }
+    else toast("AI returned no text.", "err");
+  } catch (e) {
+    toast("AI error: " + e.message, "err");
+  } finally {
+    btn.disabled = false; btn.textContent = "✨ Generate / polish with AI";
+  }
+}
+
+/* ---------- Toast ---------- */
+function toast(msg, kind) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (kind ? " " + kind : "");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = "toast"; }, kind === "err" ? 5000 : 2500);
+}
+
+/* ---------- Binding ---------- */
+const BINDINGS = [
+  ["candidateName", "candidateName", "str"],
+  ["candidateState", "candidateState", "str"],
+  ["candidateAge", "candidateAge", "num"],
+  ["maritalStatus", "maritalStatus", "str"],
+  ["children", "children", "num"],
+  ["candidateNotes", "candidateNotes", "str"],
+  ["baseSalary", "baseSalary", "num"],
+  ["bonusValue", "bonusValue", "num"],
+  ["bonusType", "bonusType", "str"],
+  ["emp401kPct", "emp401kPct", "num"],
+  ["includeHealth", "includeHealth", "bool"],
+  ["healthPlanIndex", "healthPlanIndex", "num"],
+  ["healthTier", "healthTier", "str"],
+  ["p_ssRate", "ssRate", "num"], ["p_ssWageBase", "ssWageBase", "num"],
+  ["p_medRate", "medRate", "num"], ["p_addlMed", "addlMed", "num"], ["p_addlMedThresh", "addlMedThresh", "num"],
+  ["p_futaRate", "futaRate", "num"], ["p_futaWageBase", "futaWageBase", "num"],
+  ["p_sutaRate", "sutaRate", "num"], ["p_sutaWageBase", "sutaWageBase", "num"],
+  ["p_workersComp", "workersComp", "num"], ["p_otherEmployer", "otherEmployer", "num"],
+  ["p_matchRate", "matchRate", "num"], ["p_matchCap", "matchCap", "num"], ["p_catchupAge", "catchupAge", "num"],
+  ["p_healthPretax", "healthPretax", "str"],
+  ["p_stdSingle", "stdSingle", "num"], ["p_stdMfj", "stdMfj", "num"], ["p_stateRate", "stateRate", "num"],
+  ["subBasis", "subBasis", "str"], ["subCustomAmount", "subCustomAmount", "num"],
+  ["subWorkDays", "subWorkDays", "num"], ["subHoursDay", "subHoursDay", "num"],
+  ["subHolidays", "subHolidays", "num"], ["subPto", "subPto", "num"],
+  ["subSick", "subSick", "num"], ["subBuffer", "subBuffer", "num"], ["subAdjust", "subAdjust", "num"],
+  ["aiModel", "aiModel", "str"], ["aiInstruction", "aiInstruction", "str"]
+];
+
+function buildStateDropdown() {
+  $("candidateState").innerHTML = Object.keys(STATE_NAMES).sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b]))
+    .map(code => `<option value="${code}">${STATE_NAMES[code]} (${STATE_TAX[code]}%)</option>`).join("");
+}
+function updateStateRateHint() {
+  $("stateRateHint").textContent = `State income tax ≈ ${state.stateRate}% (editable in Parameters)`;
+}
+function hydrateInputs() {
+  for (const [id, key, type] of BINDINGS) {
+    const el = $(id); if (!el) continue;
+    if (type === "bool") el.checked = !!state[key];
+    else el.value = state[key];
+  }
+  $("proposalText").value = state.proposalText || DEFAULT_TEMPLATE;
+  const savedKey = localStorage.getItem(KEY_STORAGE);
+  if (savedKey) $("aiKey").value = savedKey;
+  updateStateRateHint();
+}
+function bindInputs() {
+  for (const [id, key, type] of BINDINGS) {
+    const el = $(id); if (!el) continue;
+    const handler = () => {
+      if (type === "bool") state[key] = el.checked;
+      else if (type === "num") state[key] = el.value === "" ? "" : +el.value;
+      else state[key] = el.value;
+      if (key === "candidateState") {
+        state.stateRate = STATE_TAX[state.candidateState] != null ? STATE_TAX[state.candidateState] : state.stateRate;
+        $("p_stateRate").value = state.stateRate;
+        updateStateRateHint();
+      }
+      if (key === "stateRate") updateStateRateHint();
+      saveState(); renderAll();
+    };
+    el.addEventListener("input", handler);
+    el.addEventListener("change", handler);
+  }
+  $("proposalText").addEventListener("input", () => { state.proposalText = $("proposalText").value; saveState(); renderProposal(); });
+  $("aiKey").addEventListener("input", () => {
+    const v = $("aiKey").value.trim();
+    if (v) localStorage.setItem(KEY_STORAGE, v); else localStorage.removeItem(KEY_STORAGE);
+  });
+
+  // Health plan editor delegation
+  $("healthPlansList").addEventListener("input", e => {
+    const rowEl = e.target.closest(".plan-row"); if (!rowEl) return;
+    const i = +rowEl.dataset.i, f = e.target.dataset.f; if (f == null) return;
+    state.healthPlans[i][f] = f === "name" ? e.target.value : (e.target.value === "" ? 0 : +e.target.value);
+    saveState(); refreshHealthSelect(); renderAll();
+  });
+  $("healthPlansList").addEventListener("click", e => {
+    const del = e.target.closest(".del"); if (!del) return;
+    if (state.healthPlans.length <= 1) { toast("Keep at least one plan.", "err"); return; }
+    state.healthPlans.splice(+del.dataset.i, 1);
+    if (+state.healthPlanIndex >= state.healthPlans.length) state.healthPlanIndex = state.healthPlans.length - 1;
+    saveState(); renderHealthPlansParams(); refreshHealthSelect(); renderAll();
+  });
+  $("addPlanBtn").addEventListener("click", () => {
+    state.healthPlans.push({ name: "New plan", premiumIndividual: 8000, premiumFamily: 20000, employerShare: 80 });
+    saveState(); renderHealthPlansParams(); refreshHealthSelect(); renderAll();
+  });
+
+  // Candidate list delegation
+  $("candidatesList").addEventListener("click", e => {
+    const btn = e.target.closest("button[data-act]"); if (!btn) return;
+    const act = btn.dataset.act, cid = btn.dataset.c, hid = btn.dataset.h;
+    if (act === "load") loadHistoryEntry(cid, hid);
+    else if (act === "exp") {
+      const { h, c } = findEntry(cid, hid);
+      if (h) exportProposal("print", h.proposalText, c.name);
+    } else if (act === "delh") {
+      const { c } = findEntry(cid, hid);
+      if (c && confirm("Delete this saved generation?")) {
+        c.history = c.history.filter(x => x.id !== hid);
+        saveCandidates(); renderCandidates();
+      }
+    } else if (act === "delc") {
+      const c = candidates.find(x => x.id === cid);
+      if (c && confirm(`Delete candidate "${c.name}" and all their history?`)) {
+        candidates = candidates.filter(x => x.id !== cid);
+        saveCandidates(); renderCandidates();
+      }
+    }
+  });
+}
+function renderAll() { renderCalc(); renderSub(); renderProposal(); }
+
+/* ---------- Static content ---------- */
+function renderBracketDump() {
+  const f = b => b.map(([u, r]) => `${(r * 100).toFixed(0)}% up to ${u === Infinity ? "∞" : "$" + u.toLocaleString()}`).join("<br>");
+  $("bracketDump").innerHTML = "<b>Single</b><br>" + f(FED_BRACKETS.single) + "<br><br><b>MFJ</b><br>" + f(FED_BRACKETS.mfj);
+}
+function renderPlaceholders() {
+  $("placeholderList").innerHTML = Object.keys(proposalVars()).map(k => `<code class="tok">{{${k}}}</code>`).join(" ");
+}
+
+/* ---------- Tabs ---------- */
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === name));
+  document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+  $("view-" + name).classList.add("active");
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+
+/* ---------- Buttons ---------- */
+$("resetBtn").addEventListener("click", () => {
+  if (!confirm("Reset all inputs and parameters to default US values? (Saved candidates and API key are kept.)")) return;
+  state = JSON.parse(JSON.stringify(DEFAULTS));
+  state.proposalText = DEFAULT_TEMPLATE;
+  saveState(); hydrateInputs(); renderHealthPlansParams(); refreshHealthSelect(); renderAll();
+  toast("Reset to defaults", "ok");
+});
+$("fillTemplateBtn").addEventListener("click", () => {
+  $("proposalText").value = DEFAULT_TEMPLATE; state.proposalText = DEFAULT_TEMPLATE; saveState(); renderProposal();
+  toast("Template reset", "ok");
+});
+$("insertNumbersBtn").addEventListener("click", () => {
+  $("proposalText").value = applyPlaceholders($("proposalText").value);
+  state.proposalText = $("proposalText").value; saveState(); renderProposal();
+  toast("Live numbers inserted", "ok");
+});
+$("saveHistBtn1").addEventListener("click", saveToHistory);
+$("saveHistBtn2").addEventListener("click", saveToHistory);
+$("exportMdBtn").addEventListener("click", () => exportProposal("md"));
+$("exportHtmlBtn").addEventListener("click", () => exportProposal("html"));
+$("printBtn").addEventListener("click", () => exportProposal("print"));
+$("aiSettingsBtn").addEventListener("click", () => { const el = $("aiSettings"); el.style.display = el.style.display === "none" ? "" : "none"; });
+$("aiGenerateBtn").addEventListener("click", generateWithAI);
+
+/* ---------- Init ---------- */
+buildStateDropdown();
+hydrateInputs();
+bindInputs();
+renderHealthPlansParams();
+refreshHealthSelect();
+renderBracketDump();
+renderPlaceholders();
+renderCandidates();
+renderAll();
+</script>
+</body>
+</html>
