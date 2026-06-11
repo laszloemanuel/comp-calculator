@@ -1,0 +1,13 @@
+# Netlify config — static site + AI proxy function.
+# Routes /api/generate to the Netlify Function so the front-end can call the
+# same path it uses on Cloudflare Pages.
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/generate"
+  to = "/.netlify/functions/generate"
+  status = 200
+  force = true

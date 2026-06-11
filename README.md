@@ -28,21 +28,32 @@ visitor's browser via `localStorage`; nothing is uploaded.
 
 Just open `index.html` in any modern browser. That's it.
 
-## The AI feature is bring-your-own-key
+## The AI feature has two modes
 
-The AI proposal writer is **optional**. Each visitor pastes their **own**
-Anthropic API key (from <https://console.anthropic.com/settings/keys>) into
-*AI settings*; it is stored only in their browser and used for direct
-browser→API calls.
+The AI proposal writer is **optional** and works in either of two ways — the
+front-end auto-detects which is available:
 
-> ⚠️ **Never put your own API key in this file.** It is a public static page —
-> anyone can view the source. A committed key can be stolen and abused. If you
-> ever want users not to need their own key, replace the direct API call with a
-> serverless proxy that holds the key on the server side.
+1. **Keyless backend (recommended for a public site).** If you deploy with the
+   included serverless function and set your `ANTHROPIC_API_KEY` as a server
+   environment variable, visitors get AI with **no key of their own**. The key
+   never reaches the browser; the function builds the prompt server-side and
+   only the proposal text comes back. See *Deploy with keyless AI* below.
+2. **Bring-your-own-key.** On a pure static host (e.g. GitHub Pages, where the
+   function can't run), or for power users, a visitor can paste their **own**
+   Anthropic key (from <https://console.anthropic.com/settings/keys>) in
+   *AI settings*. It's stored only in their browser and used for a direct
+   browser→API call. If a visitor enters their own key, it always takes priority.
 
-## Publish it (static hosting)
+> ⚠️ **Never put your own API key inside `index.html`.** It is a public page —
+> anyone can view the source. The server key belongs only in the host's
+> environment-variable settings (mode 1), never in committed code.
 
-### Option A — GitHub Pages (recommended: free, versioned, custom domain)
+## Publish it
+
+### Static only, bring-your-own-key — GitHub Pages
+
+Free, versioned, custom-domain capable. The serverless function is simply
+ignored (GitHub Pages can't run it), so AI works in **bring-your-own-key** mode.
 
 1. Create a new repository on GitHub (e.g. `comp-calculator`).
 2. Push this folder:
@@ -51,21 +62,38 @@ browser→API calls.
    git branch -M main
    git push -u origin main
    ```
-3. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a
-   branch → Branch: `main` / `/ (root)` → Save.**
-4. Your site goes live at `https://<you>.github.io/comp-calculator/` in ~1 min.
+3. **Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)` → Save.**
+4. Live at `https://<you>.github.io/comp-calculator/` in ~1 min.
 
-To update later: edit `index.html`, then `git commit -am "update" && git push`.
+Update later: edit `index.html`, then `git commit -am "update" && git push`.
 
-### Option B — Netlify Drop (fastest, no account juggling)
+### Deploy with keyless AI — Cloudflare Pages (recommended)
 
-Go to <https://app.netlify.com/drop> and drag this folder onto the page. You get
-an instant public URL. Optionally connect it to this Git repo for auto-deploys.
+Serves the static site **and** the AI function from the same repo, free tier.
 
-### Option C — Cloudflare Pages / Vercel
+1. Push this repo to GitHub (steps above).
+2. Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** →
+   pick the repo. Build command: *(none)*. Output directory: `/` (root).
+3. **Settings → Environment variables → add `ANTHROPIC_API_KEY` = `sk-ant-...`**,
+   then redeploy.
+4. The function at `functions/api/generate.js` serves `/api/generate`, and the
+   app shows “✓ Keyless AI is available”.
 
-Connect the repo (or upload the folder) as a static site; no build command and
-no output directory are needed.
+### Deploy with keyless AI — Netlify
+
+1. Push to GitHub, then Netlify → **Add new site → Import from Git** → pick the repo.
+2. Netlify reads `netlify.toml` (publish `.`, functions in `netlify/functions`,
+   `/api/generate` redirect — all included).
+3. **Site settings → Environment variables → add `ANTHROPIC_API_KEY`**, redeploy.
+
+The default proxy model is `claude-sonnet-4-6` (you pay per call). To force a
+specific model or change the cap, edit `DEFAULT_MODEL` / `MAX_TOKENS` in
+`functions/api/generate.js` (and the Netlify copy).
+
+> **Abuse note for keyless mode:** the function caps output size, allowlists
+> models, and builds the prompt server-side, but it has no per-user rate limit
+> (serverless is stateless). For a high-traffic public site, add Cloudflare
+> Turnstile / rate-limiting or Netlify's rate limits in front of `/api/generate`.
 
 ## Disclaimer
 

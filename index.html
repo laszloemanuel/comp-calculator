@@ -188,6 +188,20 @@
   @media print { body * { visibility:hidden; } }
   footer { max-width:1240px; margin:0 auto; padding:24px; color:var(--muted); font-size:12px; line-height:1.6; border-top:1px solid var(--border); }
   footer a { color:var(--accent); }
+  .iconbtn { width:34px; height:34px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--muted); cursor:pointer; font-weight:700; }
+  .iconbtn:hover { color:var(--accent); border-color:var(--accent); }
+  .overlay { position:fixed; inset:0; background:rgba(20,32,52,.45); display:none; align-items:center; justify-content:center; z-index:200; padding:20px; }
+  .overlay.show { display:flex; }
+  .modal { background:var(--panel); border-radius:14px; max-width:560px; width:100%; box-shadow:var(--shadow-lg); max-height:90vh; overflow:auto; }
+  .modal-h { padding:20px 24px; border-bottom:1px solid var(--border); }
+  .modal-h h2 { margin:0; font-size:19px; }
+  .modal-h p { margin:6px 0 0; color:var(--muted); font-size:13px; }
+  .modal-b { padding:18px 24px; }
+  .feat { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .feat:last-child { border-bottom:none; }
+  .feat .ic { flex:0 0 auto; width:30px; height:30px; border-radius:8px; background:var(--accent-soft); color:var(--accent-2); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .feat .tx b { font-size:13px; } .feat .tx div { font-size:12px; color:var(--muted); }
+  .modal-f { padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; }
 </style>
 </head>
 <body>
@@ -197,10 +211,32 @@
     <div class="sub">Net · Gross · Full company cost · Subcontractor rate · Candidates &amp; history · Proposals</div>
   </div>
   <div class="toolbar" style="margin:0">
+    <button class="iconbtn" id="helpBtn" title="About this app">?</button>
     <button class="btn ghost" id="resetBtn">Reset defaults</button>
     <span class="muted" id="savedNote" style="font-size:12px"></span>
   </div>
 </header>
+
+<div class="overlay" id="welcome">
+  <div class="modal">
+    <div class="modal-h">
+      <h2>👋 Welcome to the Compensation Package Calculator</h2>
+      <p>Model US compensation offers, derive contractor rates, and draft proposals — all in your browser.</p>
+    </div>
+    <div class="modal-b">
+      <div class="feat"><div class="ic">💸</div><div class="tx"><b>Compensation</b><div>Enter a candidate &amp; package — see estimated employee net, gross, and fully-loaded company cost.</div></div></div>
+      <div class="feat"><div class="ic">⏱️</div><div class="tx"><b>Subcontractor rate</b><div>Turn any package into an hourly rate, with unpaid time-off folded in.</div></div></div>
+      <div class="feat"><div class="ic">👥</div><div class="tx"><b>Candidates &amp; history</b><div>Save each generation per candidate; reload, export, or delete past snapshots.</div></div></div>
+      <div class="feat"><div class="ic">📄</div><div class="tx"><b>Proposals</b><div>Edit a Markdown template with live numbers and export to Markdown, HTML, or PDF. Optional AI drafting.</div></div></div>
+      <div class="feat"><div class="ic">🔒</div><div class="tx"><b>Private by design</b><div>Everything — inputs, candidates, and any API key — stays in this browser. Nothing is uploaded.</div></div></div>
+    </div>
+    <div class="modal-f">
+      <span class="muted" style="font-size:12px">Figures are estimates, not tax/legal advice.</span>
+      <div class="spacer"></div>
+      <button class="btn" id="welcomeStart">Get started</button>
+    </div>
+  </div>
+</div>
 
 <div class="tabs">
   <button class="tab active" data-tab="calc">Compensation</button>
@@ -506,6 +542,7 @@
 
     <div class="card" id="aiSettings" style="display:none;margin-bottom:16px">
       <h2>AI settings (Anthropic Claude)</h2>
+      <div id="aiBackendStatus" class="note" style="margin-bottom:12px"></div>
       <div class="grid cols-2">
         <div class="field">
           <label>API key (stored locally in your browser only)</label>
@@ -1082,16 +1119,11 @@ function exportProposal(format, mdOverride, nameOverride) {
 // for history exports the text is already resolved or contains placeholders we resolve against current vars
 function applyPlaceholdersStatic(text) { return applyPlaceholders(text); }
 
-/* ---------- AI generation ---------- */
-async function generateWithAI() {
-  const key = localStorage.getItem(KEY_STORAGE) || $("aiKey").value.trim();
-  if (!key) { toast("Enter your Anthropic API key in AI settings first.", "err"); $("aiSettings").style.display = ""; return; }
-  const btn = $("aiGenerateBtn");
-  btn.disabled = true; btn.textContent = "Generating…";
+/* ---------- AI generation (dual-mode: keyless backend OR bring-your-own-key) ---------- */
+// Same-origin proxy path; null when opened as a local file (no backend reachable).
+function aiEndpoint() { return location.protocol === "file:" ? null : "/api/generate"; }
 
-  const vars = proposalVars();
-  const current = $("proposalText").value;
-  const instruction = state.aiInstruction || "Improve clarity, warmth, and professionalism. Keep all numbers exactly as given.";
+function buildPrompt(vars, current, instruction) {
   const sys = "You are an expert HR compensation writer for a US legal entity. " +
     "You write clear, warm, professional compensation proposals in GitHub-flavored Markdown " +
     "(headings, bold, tables, bullet lists). Never invent or alter any monetary figures or personal " +
@@ -1099,32 +1131,90 @@ async function generateWithAI() {
   const userMsg =
     "Verified candidate & package data (do not change any value):\n" + JSON.stringify(vars, null, 2) +
     "\n\nCurrent draft to revise (may be empty):\n---\n" + current +
-    "\n---\n\nInstruction: " + instruction + "\n\nProduce the full proposal in Markdown.";
+    "\n---\n\nInstruction: " + (instruction || "Improve clarity, warmth, and professionalism. Keep all numbers exactly as given.") +
+    "\n\nProduce the full proposal in Markdown.";
+  return { sys, userMsg };
+}
 
+async function probeBackend() {
+  const status = $("aiBackendStatus"); if (!status) return;
+  const ep = aiEndpoint();
+  if (!ep) { status.innerHTML = "Opened as a local file — the keyless backend isn't reachable. Add your own API key below to use AI."; return; }
+  status.innerHTML = "Checking for an AI backend…";
   try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: state.aiModel || "claude-opus-4-8",
-        max_tokens: 4000,
-        system: sys,
-        messages: [{ role: "user", content: userMsg }]
-      })
-    });
-    if (!resp.ok) {
-      const errTxt = await resp.text();
-      let msg = resp.status + " " + resp.statusText;
-      try { const j = JSON.parse(errTxt); if (j.error && j.error.message) msg = j.error.message; } catch (e) {}
-      throw new Error(msg);
+    const r = await fetch(ep, { method: "GET" });
+    if (r.ok) {
+      const j = await r.json().catch(() => ({}));
+      if (j && j.ai) {
+        status.innerHTML = j.configured
+          ? "✓ <b>Keyless AI is available on this site</b> — no API key needed."
+          : "⚠ AI backend detected but its server key isn't set (ANTHROPIC_API_KEY). Add your own key below to use AI now.";
+        return;
+      }
     }
-    const data = await resp.json();
-    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+    status.innerHTML = "No AI backend on this host — add your own Anthropic API key below to use AI.";
+  } catch (e) {
+    status.innerHTML = "No AI backend on this host — add your own Anthropic API key below to use AI.";
+  }
+}
+
+async function proxyGenerate(ep, payload) {
+  let r;
+  try { r = await fetch(ep, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) }); }
+  catch (e) { return { noBackend: true }; }
+  if (r.status === 404 || r.status === 405) return { noBackend: true };
+  const ct = r.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) return { noBackend: true }; // static host served an HTML 404/page
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || (r.status + " " + r.statusText));
+  return { text: (j.text || "").trim() };
+}
+
+async function directGenerate(payload, key) {
+  const { sys, userMsg } = buildPrompt(payload.vars, payload.current, payload.instruction);
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({ model: payload.model, max_tokens: 4000, system: sys, messages: [{ role: "user", content: userMsg }] })
+  });
+  if (!resp.ok) {
+    const t = await resp.text(); let m = resp.status + " " + resp.statusText;
+    try { const j = JSON.parse(t); if (j.error && j.error.message) m = j.error.message; } catch (e) {}
+    throw new Error(m);
+  }
+  const data = await resp.json();
+  return (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+}
+
+async function generateWithAI() {
+  const btn = $("aiGenerateBtn"); btn.disabled = true; btn.textContent = "Generating…";
+  const payload = {
+    vars: proposalVars(),
+    current: $("proposalText").value,
+    instruction: state.aiInstruction || "",
+    model: state.aiModel || "claude-opus-4-8"
+  };
+  const userKey = localStorage.getItem(KEY_STORAGE) || $("aiKey").value.trim();
+  try {
+    let text;
+    if (userKey) {
+      // The user supplied their own key — respect it (works on any host).
+      text = await directGenerate(payload, userKey);
+    } else {
+      // No key → use the hosted keyless backend if present.
+      const ep = aiEndpoint();
+      const res = ep ? await proxyGenerate(ep, payload) : { noBackend: true };
+      if (res.noBackend) {
+        $("aiSettings").style.display = ""; probeBackend();
+        throw new Error("No keyless AI backend here. Open AI settings and paste your own Anthropic API key — or host the included backend.");
+      }
+      text = res.text;
+    }
     if (text) { $("proposalText").value = text; state.proposalText = text; saveState(); renderProposal(); toast("Proposal generated ✓", "ok"); }
     else toast("AI returned no text.", "err");
   } catch (e) {
@@ -1298,8 +1388,18 @@ $("saveHistBtn2").addEventListener("click", saveToHistory);
 $("exportMdBtn").addEventListener("click", () => exportProposal("md"));
 $("exportHtmlBtn").addEventListener("click", () => exportProposal("html"));
 $("printBtn").addEventListener("click", () => exportProposal("print"));
-$("aiSettingsBtn").addEventListener("click", () => { const el = $("aiSettings"); el.style.display = el.style.display === "none" ? "" : "none"; });
+$("aiSettingsBtn").addEventListener("click", () => { const el = $("aiSettings"); const show = el.style.display === "none"; el.style.display = show ? "" : "none"; if (show) probeBackend(); });
 $("aiGenerateBtn").addEventListener("click", generateWithAI);
+
+/* ---------- Welcome modal ---------- */
+const WELCOME_KEY = "compCalcWelcomeSeen_v1";
+function showWelcome() { $("welcome").classList.add("show"); }
+function hideWelcome() { $("welcome").classList.remove("show"); localStorage.setItem(WELCOME_KEY, "1"); }
+$("helpBtn").addEventListener("click", showWelcome);
+$("welcomeStart").addEventListener("click", hideWelcome);
+$("welcome").addEventListener("click", e => { if (e.target === $("welcome")) hideWelcome(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") hideWelcome(); });
+if (!localStorage.getItem(WELCOME_KEY)) showWelcome();
 
 /* ---------- Init ---------- */
 buildStateDropdown();
