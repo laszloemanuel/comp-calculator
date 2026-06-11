@@ -211,7 +211,10 @@
     <div class="sub" data-i18n="app_sub">Net · Gross · Full company cost · Subcontractor rate · Candidates &amp; history · Proposals · Multi-country</div>
   </div>
   <div class="toolbar" style="margin:0">
+    <span class="muted" id="fxStatus" style="font-size:11px"></span>
     <select id="countrySel" style="width:auto" title="Country"></select>
+    <select id="currSel" style="width:auto" title="Currency"></select>
+    <button class="btn ghost sm" id="periodBtn" title="Salary basis"></button>
     <select id="langSel" style="width:auto" title="Language">
       <option value="en">🇬🇧 English</option>
       <option value="hu">🇭🇺 Magyar</option>
@@ -294,7 +297,7 @@
         <div class="card">
           <h2 data-i18n="card_package">Package elements</h2>
           <div class="field">
-            <label data-i18n="lbl_base">Base salary (annual, gross)</label>
+            <label id="lblBase">Base salary (annual, gross)</label>
             <div class="inline"><span class="suffix ccsym">$</span><input type="number" id="baseSalary" /></div>
           </div>
           <div class="field">
@@ -733,6 +736,74 @@ const BR_IRRF = [
 ];
 function brIRRF(baseM) { for (const [up, r, d] of BR_IRRF) if (baseM <= up) return Math.max(0, baseM * r - d); return 0; }
 
+/* ---------- Currency & FX ---------- */
+const SUPPORTED_CURR = ["USD", "EUR", "HUF", "BRL"];
+const CURR_SYMBOL = { USD: "$", EUR: "€", HUF: "Ft", BRL: "R$" };
+const CURR_LOCALE = { USD: "en-US", EUR: "de-DE", HUF: "hu-HU", BRL: "pt-BR" };
+const PERIOD_DEFAULT = { US: "annual", HU: "monthly", AT: "annual", BR: "monthly" };
+// FX stored as HUF per 1 unit of currency (MNB-style). Built-in mid-2025 snapshot fallback.
+const FX_SNAPSHOT = { HUF: 1, EUR: 395, USD: 360, BRL: 66 };
+const FX_STORE = "compCalcFx_v1";
+let FX = { rates: Object.assign({}, FX_SNAPSHOT), ts: 0, source: "built-in snapshot" };
+function fxLoad() {
+  try { const s = JSON.parse(localStorage.getItem(FX_STORE) || "null"); if (s && s.rates && s.rates.HUF) FX = s; } catch (e) {}
+}
+function fxSave() { try { localStorage.setItem(FX_STORE, JSON.stringify(FX)); } catch (e) {} }
+function conv(amount, from, to) {
+  const a = +amount || 0; if (from === to || !from || !to) return a;
+  const hf = FX.rates[from], ht = FX.rates[to];
+  if (!hf || !ht) return a;
+  return a * (hf / ht);
+}
+function fmtCur(v, iso) {
+  try { return new Intl.NumberFormat(CURR_LOCALE[iso] || "en-US", { style: "currency", currency: iso, maximumFractionDigits: 0 }).format(Math.round(v || 0)); }
+  catch (e) { return (CURR_SYMBOL[iso] || "") + Math.round(v || 0).toLocaleString(); }
+}
+function fmtCur2(v, iso) {
+  try { return new Intl.NumberFormat(CURR_LOCALE[iso] || "en-US", { style: "currency", currency: iso, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0); }
+  catch (e) { return (CURR_SYMBOL[iso] || "") + (v || 0).toFixed(2); }
+}
+async function fxRefresh(force) {
+  const weekMs = 7 * 24 * 3600 * 1000;
+  if (!force && FX.ts && (Date.now() - FX.ts) < weekMs) { fxStatus(); return; }
+  // 1) serverless MNB endpoint (only on a functions host)
+  if (location.protocol !== "file:") {
+    try {
+      const r = await fetch("/api/rates", { method: "GET" });
+      const ct = r.headers.get("content-type") || "";
+      if (r.ok && ct.includes("application/json")) {
+        const j = await r.json();
+        if (j && j.rates && j.rates.HUF) { FX = { rates: j.rates, ts: Date.now(), source: j.source || "MNB" }; fxSave(); fxStatus(); renderAll(); return; }
+      }
+    } catch (e) {}
+  }
+  // 2) ECB via Frankfurter (CORS-friendly), HUF-based
+  try {
+    const r = await fetch("https://api.frankfurter.app/latest?base=HUF&symbols=EUR,USD,BRL");
+    if (r.ok) {
+      const j = await r.json();
+      if (j && j.rates) {
+        const rates = { HUF: 1 };
+        for (const c of ["EUR", "USD", "BRL"]) if (j.rates[c]) rates[c] = 1 / j.rates[c]; // units-per-HUF → HUF-per-unit
+        if (rates.EUR && rates.USD) {
+          if (!rates.BRL) rates.BRL = FX_SNAPSHOT.BRL;
+          FX = { rates, ts: Date.now(), source: "ECB (Frankfurter)" }; fxSave(); fxStatus(); renderAll(); return;
+        }
+      }
+    }
+  } catch (e) {}
+  fxStatus();
+}
+function fxStatus() {
+  const el = $("fxStatus"); if (!el) return;
+  const when = FX.ts ? new Date(FX.ts).toLocaleDateString() : "—";
+  el.textContent = `${t("fx_label")}: ${FX.source} · ${when}`;
+}
+// display helpers: calc works in country-native currency; UI shows the active display currency (state.curr)
+function dconv(v, r) { return conv(v, COUNTRIES[r.cc].currency, state.curr); }
+function dfmt(v, r) { return fmtCur(dconv(v, r), state.curr); }
+function dfmt2(v, r) { return fmtCur2(dconv(v, r), state.curr); }
+
 /* ---------- Translations ---------- */
 const I18N = {
   en: {
@@ -773,6 +844,7 @@ const I18N = {
     sub_foot: "The contractor must bill {hrs} to match the chosen package basis, because {days} paid-off days an employee would otherwise get are now unpaid.",
     basis_full: "full company cost", basis_gross: "gross compensation", basis_net: "employee net", basis_custom: "the custom amount",
     of_base: "of base salary", fixed: "fixed",
+    fx_label: "Rates", basis_monthly: "Monthly", basis_annual: "Annual", lbl_base_m: "Base salary (monthly, gross)", lbl_base_a: "Base salary (annual, gross)",
     footer_html: "<b>Estimates only.</b> Tax/contribution rates are built-in approximations for 2025 and are all editable on the Parameters tab. This tool is for offer modeling and is <b>not</b> tax, legal, or financial advice — verify figures with a qualified payroll/tax professional. &nbsp;·&nbsp; <b>Your data stays on your device:</b> all inputs, candidates, and your optional API key are stored only in this browser (localStorage) and are never uploaded.",
     w_title: "👋 Welcome to the Compensation Package Calculator", w_sub: "Model compensation offers across the US, Hungary, Austria and Brazil — all in your browser.",
     w_f1t: "Compensation", w_f1d: "Enter a candidate & package — see estimated employee net, gross, and fully-loaded company cost in the local currency.",
@@ -827,6 +899,7 @@ const I18N = {
     sub_foot: "{hrs} kiszámlázása szükséges a választott csomagalaphoz, mert {days} fizetett szabadnap, amit egy munkavállaló egyébként kapna, most fizetetlen.",
     basis_full: "teljes munkáltatói költség", basis_gross: "bruttó javadalmazás", basis_net: "munkavállalói nettó", basis_custom: "az egyedi összeg",
     of_base: "az alapbérből", fixed: "fix",
+    fx_label: "Árfolyam", basis_monthly: "Havi", basis_annual: "Éves", lbl_base_m: "Alapbér (havi, bruttó)", lbl_base_a: "Alapbér (éves, bruttó)",
     footer_html: "<b>Csak becslés.</b> Az adó- és járulékkulcsok beépített, 2025-ös közelítések, amelyek mind szerkeszthetők a Paraméterek fülön. Ez az eszköz ajánlat-modellezésre szolgál, és <b>nem</b> minősül adó-, jogi vagy pénzügyi tanácsadásnak — ellenőrizd az értékeket szakképzett bér-/adószakértővel. &nbsp;·&nbsp; <b>Az adataid a készülékeden maradnak:</b> minden adat, jelölt és az opcionális API kulcs csak ebben a böngészőben (localStorage) tárolódik, és sehová sem töltődik fel.",
     w_title: "👋 Üdv a Bérkalkulátorban", w_sub: "Modellezz javadalmazási ajánlatokat az USA, Magyarország, Ausztria és Brazília esetén — mindezt a böngésződben.",
     w_f1t: "Javadalmazás", w_f1d: "Add meg a jelöltet és a csomagot — lásd a becsült nettót, bruttót és a teljes munkáltatói költséget helyi pénznemben.",
@@ -848,7 +921,7 @@ const I18N = {
 function setLang(lang) {
   state.lang = (lang === "hu") ? "hu" : "en";
   $("langSel").value = state.lang;
-  saveState(); applyI18n(); applyCountryUI(); renderHealthPlansParams(); renderCandidates(); renderPlaceholders(); renderAll();
+  saveState(); applyI18n(); applyCountryUI(); applyCurrencyUI(); renderHealthPlansParams(); renderCandidates(); renderPlaceholders(); renderAll();
 }
 function show(sel, on) { const el = document.querySelector(sel); if (el) el.style.display = on ? "" : "none"; }
 function buildCountrySelect() {
@@ -857,13 +930,48 @@ function buildCountrySelect() {
 }
 function setCountry(cc) {
   if (!COUNTRIES[cc]) cc = "US";
-  state.country = cc; $("countrySel").value = cc;
-  saveState(); applyCountryUI(); renderAll();
-  toast(COUNTRIES[cc].flag + " " + COUNTRIES[cc].name, "ok");
+  const oldCurr = state.curr, oldPeriod = state.period;
+  state.country = cc;
+  state.curr = COUNTRIES[cc].currency;
+  state.period = PERIOD_DEFAULT[cc] || "annual";
+  reexpress(oldCurr, oldPeriod);
+  $("countrySel").value = cc;
+  saveState(); hydrateInputs(); applyCountryUI(); applyCurrencyUI(); renderAll();
+  toast(COUNTRIES[cc].flag + " " + COUNTRIES[cc].name + " · " + state.curr, "ok");
+}
+function setCurrency(iso) {
+  if (SUPPORTED_CURR.indexOf(iso) < 0 || iso === state.curr) return;
+  const oldCurr = state.curr;
+  state.curr = iso; reexpress(oldCurr, state.period);
+  saveState(); hydrateInputs(); applyCurrencyUI(); renderAll();
+}
+function setPeriod(p) {
+  if ((p !== "monthly" && p !== "annual") || p === state.period) return;
+  const oldPeriod = state.period;
+  state.period = p; reexpress(state.curr, oldPeriod);
+  saveState(); hydrateInputs(); applyCurrencyUI(); renderAll();
+}
+function reexpress(oldCurr, oldPeriod) {
+  const baseAnnualOld = (+state.baseSalary || 0) * (oldPeriod === "monthly" ? 12 : 1);
+  const baseAnnualNew = conv(baseAnnualOld, oldCurr, state.curr);
+  state.baseSalary = Math.round(baseAnnualNew / (state.period === "monthly" ? 12 : 1));
+  if (state.bonusType !== "pct") state.bonusValue = Math.round(conv(+state.bonusValue || 0, oldCurr, state.curr));
+  state.subCustomAmount = Math.round(conv(+state.subCustomAmount || 0, oldCurr, state.curr));
+}
+function buildCurrSelect() {
+  $("currSel").innerHTML = SUPPORTED_CURR.map(c => `<option value="${c}">${CURR_SYMBOL[c]} ${c}</option>`).join("");
+  $("currSel").value = state.curr;
+}
+function applyCurrencyUI() {
+  document.querySelectorAll(".ccsym").forEach(el => el.textContent = CURR_SYMBOL[state.curr] || state.curr);
+  if ($("currSel")) $("currSel").value = state.curr;
+  const m = state.period === "monthly";
+  if ($("periodBtn")) $("periodBtn").textContent = m ? t("basis_monthly") : t("basis_annual");
+  if ($("lblBase")) $("lblBase").textContent = m ? t("lbl_base_m") : t("lbl_base_a");
+  fxStatus();
 }
 function applyCountryUI() {
-  const cc = state.country, sym = ccOf(cc).symbol;
-  document.querySelectorAll(".ccsym").forEach(el => el.textContent = sym);
+  const cc = state.country;
   show("#fieldState", cc === "US");
   show("#pkgUs401k", cc === "US");
   show("#pkgUsHealth", cc === "US");
@@ -876,7 +984,7 @@ function applyCountryUI() {
 
 const DEFAULTS = {
   // ui
-  lang: "en", country: "US",
+  lang: "en", country: "US", curr: "USD", period: "annual",
   // candidate
   candidateName: "", candidateState: "CA", candidateAge: 35,
   maritalStatus: "single", children: 0, candidateNotes: "",
@@ -924,6 +1032,8 @@ function loadState() {
     for (const k of ["huP", "atP", "brP"]) s[k] = Object.assign({}, DEFAULTS[k], s[k] || {});
     if (!COUNTRIES[s.country]) s.country = "US";
     if (s.lang !== "hu") s.lang = "en";
+    if (SUPPORTED_CURR.indexOf(s.curr) < 0) s.curr = COUNTRIES[s.country].currency;
+    if (s.period !== "monthly" && s.period !== "annual") s.period = PERIOD_DEFAULT[s.country] || "annual";
     return s;
   } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
 }
@@ -985,15 +1095,20 @@ function stdResult(cc, base, bonus, gross, net, fullCost, employeeLines, employe
 }
 function calc() {
   const cc = state.country || "US";
-  if (cc === "HU") return calcHU();
-  if (cc === "AT") return calcAT();
-  if (cc === "BR") return calcBR();
-  return calcUS();
+  const native = COUNTRIES[cc].currency;
+  // entered amount is in the active display currency + period → normalize to ANNUAL native
+  const baseAnnualCurr = (+state.baseSalary || 0) * (state.period === "monthly" ? 12 : 1);
+  const base = conv(baseAnnualCurr, state.curr, native);
+  const bonus = state.bonusType === "pct" ? base * (+state.bonusValue || 0) / 100 : conv(+state.bonusValue || 0, state.curr, native);
+  if (cc === "HU") return calcHU(base, bonus);
+  if (cc === "AT") return calcAT(base, bonus);
+  if (cc === "BR") return calcBR(base, bonus);
+  return calcUS(base, bonus);
 }
 
-function calcUS() {
+function calcUS(base, bonus) {
   const s = state;
-  const base = +s.baseSalary || 0, bonus = bonusOf(s, base), gross = base + bonus, filing = filingOf(s);
+  const gross = base + bonus, filing = filingOf(s);
   const emp401k = base * (+s.emp401kPct || 0) / 100;
   let healthTotal = 0, employerShare = 80, planName = "—";
   const plan = s.healthPlans[s.healthPlanIndex];
@@ -1051,9 +1166,9 @@ function calcUS() {
     { planName, employer401k, employerHealth, healthTotal, healthTier: s.healthTier });
 }
 
-function calcHU() {
+function calcHU(base, bonus) {
   const s = state, p = s.huP;
-  const base = +s.baseSalary || 0, bonus = bonusOf(s, base), gross = base + bonus;
+  const gross = base + bonus;
   const n = +s.children || 0;
   let monthlyRed = 0;
   if (n === 1) monthlyRed = +p.famAllow1 || 0;
@@ -1086,9 +1201,9 @@ function calcHU() {
     { net, tax: pit + tb, ded: 0, emp: empAddOns }, { famAllow: annualRed });
 }
 
-function calcAT() {
+function calcAT(base, bonus) {
   const s = state, p = s.atP;
-  const base = +s.baseSalary || 0, bonus = bonusOf(s, base), gross = base + bonus;
+  const gross = base + bonus;
   const cap = +p.empSVcap || Infinity;
   const sv = Math.min(gross, cap) * (+p.empSV || 0) / 100;
   const taxable = Math.max(0, gross - sv);
@@ -1119,9 +1234,8 @@ function calcAT() {
     { net, tax: sv + lst, ded: 0, emp: empAddOns }, {});
 }
 
-function calcBR() {
+function calcBR(base, bonus) {
   const s = state, p = s.brP;
-  const base = +s.baseSalary || 0, bonus = bonusOf(s, base);
   const payments = s.brInclude13 ? 13 : 12;
   const annualGross = base * (payments / 12) + bonus;
   const monthlyGross = annualGross / payments;
@@ -1159,24 +1273,24 @@ function calcBR() {
 
 /* ---------- Render compensation ---------- */
 function renderCalc() {
-  const r = calc(), cc = r.cc;
-  $("netOut").textContent = fmt(r.net, cc);
-  $("grossOut").textContent = fmt(r.gross, cc);
-  $("fullOut").textContent = fmt(r.fullCost, cc);
+  const r = calc();
+  $("netOut").textContent = dfmt(r.net, r);
+  $("grossOut").textContent = dfmt(r.gross, r);
+  $("fullOut").textContent = dfmt(r.fullCost, r);
   $("resBasePill").textContent = state.candidateName || "";
   const age = +state.candidateAge || 0;
-  $("ageNote").innerHTML = (cc === "US" && age >= (+state.catchupAge || 50))
+  $("ageNote").innerHTML = (r.cc === "US" && age >= (+state.catchupAge || 50))
     ? `<div class="note" style="margin-top:10px">${t("catchup_note").replace("{age}", age)}</div>` : "";
   const sg = r.segs, tot = r.fullCost || 1;
   $("costBar").innerHTML =
     seg(sg.net, tot, "var(--green)") + seg(sg.tax, tot, "var(--accent)") +
     seg(sg.ded, tot, "var(--purple)") + seg(sg.emp, tot, "var(--amber)");
-  $("employeeBreakdown").innerHTML = renderLines(r.employeeLines, cc);
-  $("employerBreakdown").innerHTML = renderLines(r.employerLines, cc);
+  $("employeeBreakdown").innerHTML = renderLines(r.employeeLines, r);
+  $("employerBreakdown").innerHTML = renderLines(r.employerLines, r);
 }
-function renderLines(lines, cc) {
+function renderLines(lines, r) {
   return lines.map(L => {
-    const valStr = (L.k === "sub" ? "−" : "") + fmt(L.v, cc);
+    const valStr = (L.k === "sub" ? "−" : "") + dfmt(L.v, r);
     const cls = L.k === "total" ? " total" : "";
     const ls = L.k === "subtotal" ? ' style="font-weight:700;color:var(--text)"' : "";
     return `<div class="row${cls}"><span class="label"${ls}>${L.l}</span><span class="val">${valStr}</span></div>`;
@@ -1189,12 +1303,12 @@ function seg(v, tot, color) {
 
 /* ---------- Subcontractor ---------- */
 function renderSub() {
-  const s = state, r = calc(), cc = r.cc;
+  const s = state, r = calc(), native = COUNTRIES[r.cc].currency;
   let basis;
   if (s.subBasis === "full") basis = r.fullCost;
   else if (s.subBasis === "gross") basis = r.gross;
   else if (s.subBasis === "net") basis = r.net;
-  else basis = +s.subCustomAmount || 0;
+  else basis = conv(+s.subCustomAmount || 0, state.curr, native); // custom entered in display currency
   $("customBasisField").style.display = s.subBasis === "custom" ? "" : "none";
   const daysOff = (+s.subHolidays || 0) + (+s.subPto || 0) + (+s.subSick || 0) + (+s.subBuffer || 0);
   const billDays = Math.max(1, (+s.subWorkDays || 0) - daysOff);
@@ -1205,17 +1319,17 @@ function renderSub() {
   const dayRate = rate * (+s.subHoursDay || 0);
   const annual = rate * billHrs;
   const hr = "/" + t("u_hr");
-  $("subRateOut").textContent = fmt2(rate, cc) + hr;
-  $("subRateOut2").textContent = fmt2(rate, cc) + hr;
-  $("subRateNote").textContent = t("sub_rate_note").replace("{basis}", labelFor(s.subBasis)).replace("{amount}", fmt(basis, cc)).replace("{days}", billDays);
-  $("subBasisOut").textContent = fmt(basis, cc);
+  $("subRateOut").textContent = dfmt2(rate, r) + hr;
+  $("subRateOut2").textContent = dfmt2(rate, r) + hr;
+  $("subRateNote").textContent = t("sub_rate_note").replace("{basis}", labelFor(s.subBasis)).replace("{amount}", dfmt(basis, r)).replace("{days}", billDays);
+  $("subBasisOut").textContent = dfmt(basis, r);
   $("subDaysOffOut").textContent = daysOff + " " + t("u_days");
   $("subBillDaysOut").textContent = billDays + " " + t("u_days");
   $("subBillHrsOut").textContent = Math.round(billHrs).toLocaleString() + " " + t("u_hrs");
-  $("subBaseRateOut").textContent = fmt2(baseRate, cc) + hr;
+  $("subBaseRateOut").textContent = dfmt2(baseRate, r) + hr;
   $("subAdjOut").textContent = (adj >= 0 ? "+" : "") + adj + "%";
-  $("subDayRateOut").textContent = fmt2(dayRate, cc);
-  $("subAnnualOut").textContent = fmt(annual, cc);
+  $("subDayRateOut").textContent = dfmt2(dayRate, r);
+  $("subAnnualOut").textContent = dfmt(annual, r);
   $("subFootNote").innerHTML = t("sub_foot")
     .replace("{hrs}", "<b>" + Math.round(billHrs).toLocaleString() + " " + t("u_hours") + "</b>")
     .replace("{days}", "<b>" + daysOff + "</b>");
@@ -1345,6 +1459,7 @@ function loadHistoryEntry(cid, hid) {
   hydrateInputs();
   applyI18n();
   applyCountryUI();
+  applyCurrencyUI();
   renderHealthPlansParams();
   refreshHealthSelect();
   renderAll();
@@ -1359,22 +1474,22 @@ function proposalVars() {
   return {
     candidate_name: s.candidateName || "[Candidate]",
     country: COUNTRIES[cc].name,
-    currency: COUNTRIES[cc].currency,
+    currency: state.curr,
     candidate_location: loc,
     candidate_state: loc,
     candidate_age: String(s.candidateAge || "—"),
     marital_status: s.maritalStatus === "married" ? t("opt_married") : t("opt_single"),
     children: String(s.children || 0),
-    base_salary: fmt(r.base, cc),
-    bonus: fmt(r.bonus, cc),
-    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% ${t("of_base")}` : `${fmt(r.bonus, cc)} ${t("fixed")}`,
-    gross: fmt(r.gross, cc),
-    net: fmt(r.net, cc),
-    full_cost: fmt(r.fullCost, cc),
-    employer_contrib: fmt(r.segs.emp, cc),
-    employer_401k: x.employer401k != null ? fmt(x.employer401k, cc) : "—",
-    employer_health: x.employerHealth != null ? fmt(x.employerHealth, cc) : "—",
-    health_total: x.healthTotal != null ? fmt(x.healthTotal, cc) : "—",
+    base_salary: dfmt(r.base, r),
+    bonus: dfmt(r.bonus, r),
+    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% ${t("of_base")}` : `${dfmt(r.bonus, r)} ${t("fixed")}`,
+    gross: dfmt(r.gross, r),
+    net: dfmt(r.net, r),
+    full_cost: dfmt(r.fullCost, r),
+    employer_contrib: dfmt(r.segs.emp, r),
+    employer_401k: x.employer401k != null ? dfmt(x.employer401k, r) : "—",
+    employer_health: x.employerHealth != null ? dfmt(x.employerHealth, r) : "—",
+    health_total: x.healthTotal != null ? dfmt(x.healthTotal, r) : "—",
     health_plan: x.planName || "—",
     health_tier: x.healthTier ? (x.healthTier === "family" ? t("opt_tier_fam") : t("opt_tier_ind")) : "—",
     emp_401k_pct: (s.emp401kPct || 0) + "%",
@@ -1731,9 +1846,11 @@ function bindInputs() {
     if (v) localStorage.setItem(KEY_STORAGE, v); else localStorage.removeItem(KEY_STORAGE);
   });
 
-  // Language & country selectors
+  // Language, country, currency & period selectors
   $("langSel").addEventListener("change", e => setLang(e.target.value));
   $("countrySel").addEventListener("change", e => setCountry(e.target.value));
+  $("currSel").addEventListener("change", e => setCurrency(e.target.value));
+  $("periodBtn").addEventListener("click", () => setPeriod(state.period === "monthly" ? "annual" : "monthly"));
   // Country-specific parameter inputs
   document.querySelectorAll("[data-cp]").forEach(el => {
     const obj = el.dataset.cp, k = el.dataset.k;
@@ -1807,7 +1924,7 @@ $("resetBtn").addEventListener("click", () => {
   if (!confirm("Reset all inputs and parameters to default US values? (Saved candidates and API key are kept.)")) return;
   state = JSON.parse(JSON.stringify(DEFAULTS));
   state.proposalText = defaultTemplate();
-  saveState(); buildCountrySelect(); hydrateInputs(); applyI18n(); applyCountryUI(); renderHealthPlansParams(); refreshHealthSelect(); renderCandidates(); renderAll();
+  saveState(); buildCountrySelect(); buildCurrSelect(); hydrateInputs(); applyI18n(); applyCountryUI(); applyCurrencyUI(); renderHealthPlansParams(); refreshHealthSelect(); renderCandidates(); renderAll();
   toast("Reset to defaults", "ok");
 });
 $("fillTemplateBtn").addEventListener("click", () => {
@@ -1838,18 +1955,22 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") hideWelcome(
 if (!localStorage.getItem(WELCOME_KEY)) showWelcome();
 
 /* ---------- Init ---------- */
+fxLoad();
 buildStateDropdown();
 buildCountrySelect();
+buildCurrSelect();
 hydrateInputs();
 bindInputs();
 applyI18n();
 applyCountryUI();
+applyCurrencyUI();
 renderHealthPlansParams();
 refreshHealthSelect();
 renderBracketDump();
 renderPlaceholders();
 renderCandidates();
 renderAll();
+fxRefresh();
 </script>
 </body>
 </html>

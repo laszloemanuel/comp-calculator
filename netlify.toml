@@ -11,3 +11,9 @@
   to = "/.netlify/functions/generate"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/rates"
+  to = "/.netlify/functions/rates"
+  status = 200
+  force = true
