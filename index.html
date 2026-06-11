@@ -359,15 +359,15 @@
         </h2>
         <div class="grid cols-3" style="gap:12px;margin-bottom:6px">
           <div class="stat">
-            <div class="lbl" data-i18n="stat_net">Employee net</div>
+            <div class="lbl" id="lblStatNet" data-i18n="stat_net">Employee net</div>
             <div class="big green" id="netOut">$0</div>
           </div>
           <div class="stat">
-            <div class="lbl" data-i18n="stat_gross">Gross comp</div>
+            <div class="lbl" id="lblStatGross" data-i18n="stat_gross">Gross comp</div>
             <div class="big blue" id="grossOut">$0</div>
           </div>
           <div class="stat">
-            <div class="lbl" data-i18n="stat_full">Full company cost</div>
+            <div class="lbl" id="lblStatFull" data-i18n="stat_full">Full company cost</div>
             <div class="big amber" id="fullOut">$0</div>
           </div>
         </div>
@@ -1274,9 +1274,14 @@ function calcBR(base, bonus) {
 /* ---------- Render compensation ---------- */
 function renderCalc() {
   const r = calc();
-  $("netOut").textContent = dfmt(r.net, r);
-  $("grossOut").textContent = dfmt(r.gross, r);
-  $("fullOut").textContent = dfmt(r.fullCost, r);
+  const pf = state.period === "monthly" ? 1 / 12 : 1;       // results follow the salary basis
+  const sfx = state.period === "monthly" ? " · " + t("basis_monthly") : " · " + t("basis_annual");
+  $("netOut").textContent = dfmt(r.net * pf, r);
+  $("grossOut").textContent = dfmt(r.gross * pf, r);
+  $("fullOut").textContent = dfmt(r.fullCost * pf, r);
+  $("lblStatNet").textContent = t("stat_net") + sfx;
+  $("lblStatGross").textContent = t("stat_gross") + sfx;
+  $("lblStatFull").textContent = t("stat_full") + sfx;
   $("resBasePill").textContent = state.candidateName || "";
   const age = +state.candidateAge || 0;
   $("ageNote").innerHTML = (r.cc === "US" && age >= (+state.catchupAge || 50))
@@ -1285,12 +1290,13 @@ function renderCalc() {
   $("costBar").innerHTML =
     seg(sg.net, tot, "var(--green)") + seg(sg.tax, tot, "var(--accent)") +
     seg(sg.ded, tot, "var(--purple)") + seg(sg.emp, tot, "var(--amber)");
-  $("employeeBreakdown").innerHTML = renderLines(r.employeeLines, r);
-  $("employerBreakdown").innerHTML = renderLines(r.employerLines, r);
+  $("employeeBreakdown").innerHTML = renderLines(r.employeeLines, r, pf);
+  $("employerBreakdown").innerHTML = renderLines(r.employerLines, r, pf);
 }
-function renderLines(lines, r) {
+function renderLines(lines, r, pf) {
+  pf = pf || 1;
   return lines.map(L => {
-    const valStr = (L.k === "sub" ? "−" : "") + dfmt(L.v, r);
+    const valStr = (L.k === "sub" ? "−" : "") + dfmt(L.v * pf, r);
     const cls = L.k === "total" ? " total" : "";
     const ls = L.k === "subtotal" ? ' style="font-weight:700;color:var(--text)"' : "";
     return `<div class="row${cls}"><span class="label"${ls}>${L.l}</span><span class="val">${valStr}</span></div>`;
