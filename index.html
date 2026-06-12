@@ -6,38 +6,38 @@
 <title>US Compensation Package Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #eceae4;
+    --bg: #f3f5f7;
     --panel: #ffffff;
-    --panel-2: #f0efe9;
-    --panel-3: #f7f6f1;
-    --border: #e0ddd3;
-    --border-strong: #cfcabb;
-    --text: #1a1916;
-    --muted: #6c6a62;
-    --accent: #e5482b;          /* vermilion — the signature */
-    --accent-2: #c53a20;
-    --accent-soft: #fbe5dd;
-    --green: #1f7a4d;
-    --green-soft: #e3f1e8;
-    --blue: #2b3aa3;            /* deep indigo (data blue) */
+    --panel-2: #eef1f5;
+    --panel-3: #f6f8fb;
+    --border: #e1e6ec;
+    --border-strong: #ccd5df;
+    --text: #111820;
+    --muted: #5c6a79;
+    --accent: #0a7d57;          /* deep emerald — the signature */
+    --accent-2: #076446;
+    --accent-soft: #dbf1e8;
+    --green: #0a7d57;
+    --green-soft: #dbf1e8;
+    --blue: #34518f;            /* slate blue */
     --amber: #b4640a;
-    --amber-soft: #f9ecdb;
-    --blue-soft: #e6e8f6;
-    --purple: #8a2f63;          /* plum — not the generic AI purple */
+    --amber-soft: #f7ecdc;
+    --blue-soft: #e6ebf4;
+    --purple: #7c2d57;          /* plum — not the generic AI purple */
     --red: #c8324a;
     --input-bg: #ffffff;
-    --shadow: 0 1px 2px rgba(30,24,16,.05), 0 8px 20px -10px rgba(30,24,16,.14);
-    --shadow-lg: 0 22px 55px -14px rgba(30,24,16,.26);
-    --ring: 0 0 0 3px rgba(229,72,43,.18);
+    --shadow: 0 1px 2px rgba(17,30,45,.05), 0 8px 22px -12px rgba(17,30,45,.14);
+    --shadow-lg: 0 22px 55px -16px rgba(17,30,45,.24);
+    --ring: 0 0 0 3px rgba(10,125,87,.18);
     --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
     font-size: 14px;
@@ -63,7 +63,7 @@
     top: 0;
     z-index: 40;
   }
-  header h1 { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-size: 22px; margin: 0; font-weight: 700; letter-spacing: -.02em; }
+  header h1 { font-family: "Schibsted Grotesk", system-ui, sans-serif; font-size: 22px; margin: 0; font-weight: 700; letter-spacing: -.02em; }
   header .sub { color: var(--muted); font-size: 12px; }
   .tabs {
     display: flex;
@@ -102,7 +102,7 @@
     transition: box-shadow .28s ease, border-color .28s ease;
   }
   .card:hover { box-shadow: var(--shadow-lg); border-color: var(--border-strong); }
-  .card h2 { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-size: 16px; margin: 0 0 14px; font-weight: 700; letter-spacing:-.015em; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .card h2 { font-family: "Schibsted Grotesk", system-ui, sans-serif; font-size: 16px; margin: 0 0 14px; font-weight: 700; letter-spacing:-.015em; display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .card h3 { font-size: 12px; margin: 18px 0 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
@@ -126,18 +126,17 @@
     padding: 7px 0; border-bottom: 1px solid var(--border); gap: 12px;
   }
   .row:last-child { border-bottom: none; }
-  .row .label { color: var(--muted); }
-  .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .row .label { color: var(--muted); flex: 1 1 auto; min-width: 0; }
+  .row .val { font-variant-numeric: tabular-nums; font-weight: 600; flex: 0 0 auto; white-space: nowrap; text-align: right; }
   .row.total { border-top: 2px solid var(--border); margin-top: 6px; padding-top: 12px; font-size: 15px; }
   .row.total .val { font-weight: 700; }
-  .stat { position:relative; background: linear-gradient(180deg, var(--panel-3), #ffffff); border:1px solid var(--border); border-radius:12px; padding:14px 16px 16px; overflow:hidden; }
+  .stat { position:relative; container-type: inline-size; background: linear-gradient(180deg, var(--panel-3), #ffffff); border:1px solid var(--border); border-radius:12px; padding:14px 16px 16px; overflow:hidden; }
   .stat::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); opacity:.9; }
   .stat:has(.green)::before { background:var(--green); }
   .stat:has(.blue)::before { background:var(--blue); }
   .stat:has(.amber)::before { background:var(--amber); }
   .stat .lbl { color: var(--muted); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; display:flex; align-items:center; }
-  .big { font-family: "Space Mono", ui-monospace, "SF Mono", monospace; font-size: 25px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 4px 0 0; letter-spacing:-.04em; line-height:1.1; }
-  .row .val, .fx-val, .hist-sum b, #subRateOut, #subRateOut2 { font-family: "Space Mono", ui-monospace, "SF Mono", monospace; letter-spacing:-.03em; }
+  .big { font-size: clamp(13px, 9.3cqi, 24px); font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0 0; letter-spacing:-.02em; line-height:1.14; white-space: nowrap; max-width: 100%; }
   .big.green { color: var(--green); }
   .big.blue { color: var(--blue); }
   .big.amber { color: var(--amber); }
@@ -148,10 +147,10 @@
   button.btn {
     background: var(--accent); color: #fff; border: none; padding: 9px 16px;
     border-radius: 9px; cursor: pointer; font-size: 13px; font-weight: 600;
-    box-shadow: 0 1px 2px rgba(229,72,43,.30);
+    box-shadow: 0 1px 2px rgba(10,125,87,.28);
     transition: background .2s ease, box-shadow .2s ease, transform .04s ease;
   }
-  button.btn:hover { background: var(--accent-2); box-shadow: 0 5px 14px -3px rgba(229,72,43,.42); }
+  button.btn:hover { background: var(--accent-2); box-shadow: 0 5px 14px -3px rgba(10,125,87,.40); }
   button.btn:active { transform: translateY(1px); }
   button.btn.ghost { background: var(--panel); border: 1px solid var(--border); color: var(--text); box-shadow: none; }
   button.btn.ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
@@ -238,7 +237,7 @@
   .overlay.show { display:flex; }
   .modal { background:var(--panel); border-radius:14px; max-width:560px; width:100%; box-shadow:var(--shadow-lg); max-height:90vh; overflow:auto; }
   .modal-h { padding:20px 24px; border-bottom:1px solid var(--border); }
-  .modal-h h2 { margin:0; font-size:21px; font-family:"Bricolage Grotesque",system-ui,sans-serif; font-weight:700; letter-spacing:-.02em; }
+  .modal-h h2 { margin:0; font-size:21px; font-family:"Schibsted Grotesk",system-ui,sans-serif; font-weight:700; letter-spacing:-.02em; }
   .modal-h p { margin:6px 0 0; color:var(--muted); font-size:13px; }
   .modal-b { padding:18px 24px; }
   .feat { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
