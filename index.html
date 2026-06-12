@@ -210,26 +210,55 @@
   .feat .ic { flex:0 0 auto; width:30px; height:30px; border-radius:8px; background:var(--accent-soft); color:var(--accent-2); display:flex; align-items:center; justify-content:center; font-size:15px; }
   .feat .tx b { font-size:13px; } .feat .tx div { font-size:12px; color:var(--muted); }
   .modal-f { padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  /* labeled, fixed-width control bar */
+  .selbar { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .selctl { display:flex; flex-direction:column; gap:3px; }
+  .selctl > span.l { font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+  .selctl select, .selctl button { height:34px; }
+  #countrySel { width:158px; } #currSel { width:118px; } #langSel { width:122px; } #periodBtn { width:96px; text-align:left; }
+  /* info tooltip */
+  .info { display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; border:1px solid var(--border); color:var(--muted); font-size:10px; font-weight:700; font-style:normal; cursor:help; position:relative; margin-left:5px; vertical-align:middle; }
+  .info:hover, .info:focus { color:var(--accent); border-color:var(--accent); outline:none; }
+  .info .tipbox { display:none; position:absolute; z-index:60; left:50%; transform:translateX(-50%); bottom:150%; width:230px; max-width:60vw; background:#1d2733; color:#fff; padding:8px 11px; border-radius:8px; font-size:11px; font-weight:400; line-height:1.45; box-shadow:var(--shadow-lg); text-transform:none; letter-spacing:normal; text-align:left; }
+  .info .tipbox::after { content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:#1d2733; }
+  .info:hover .tipbox, .info:focus .tipbox, .info:focus-within .tipbox { display:block; }
+  /* fx table */
+  .fx-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums; }
+  .fx-row:last-child { border-bottom:none; }
+  .fx-pair { min-width:130px; color:var(--muted); }
+  .fx-val { font-weight:600; flex:1; }
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1 data-i18n="app_title">Compensation Package Calculator</h1>
-    <div class="sub" data-i18n="app_sub">Net · Gross · Full company cost · Subcontractor rate · Candidates &amp; history · Proposals · Multi-country</div>
   </div>
-  <div class="toolbar" style="margin:0">
-    <span class="muted" id="fxStatus" style="font-size:11px"></span>
-    <select id="countrySel" style="width:auto" title="Country"></select>
-    <select id="currSel" style="width:auto" title="Currency"></select>
-    <button class="btn ghost sm" id="periodBtn" title="Salary basis"></button>
-    <select id="langSel" style="width:auto" title="Language">
-      <option value="en">🇬🇧 English</option>
-      <option value="hu">🇭🇺 Magyar</option>
-    </select>
-    <button class="iconbtn" id="helpBtn" title="About this app">?</button>
-    <button class="btn ghost" id="resetBtn" data-i18n="btn_reset">Reset defaults</button>
-    <span class="muted" id="savedNote" style="font-size:12px"></span>
+  <div class="selbar">
+    <div class="selctl">
+      <span class="l"><span data-i18n="sel_country">Country</span><span class="info" tabindex="0" data-tip="tip_country">i<span class="tipbox"></span></span></span>
+      <select id="countrySel"></select>
+    </div>
+    <div class="selctl">
+      <span class="l"><span data-i18n="sel_currency">Currency</span><span class="info" tabindex="0" data-tip="tip_currency">i<span class="tipbox"></span></span></span>
+      <select id="currSel"></select>
+    </div>
+    <div class="selctl">
+      <span class="l"><span data-i18n="sel_basis">Basis</span><span class="info" tabindex="0" data-tip="tip_basis">i<span class="tipbox"></span></span></span>
+      <button class="btn ghost sm" id="periodBtn"></button>
+    </div>
+    <div class="selctl">
+      <span class="l"><span data-i18n="sel_language">Language</span></span>
+      <select id="langSel"><option value="en">🇬🇧 English</option><option value="hu">🇭🇺 Magyar</option></select>
+    </div>
+    <div class="selctl">
+      <span class="l">&nbsp;</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="iconbtn" id="helpBtn" title="About this app">?</button>
+        <button class="btn ghost" id="resetBtn" data-i18n="btn_reset">Reset defaults</button>
+        <span class="muted" id="savedNote" style="font-size:12px;min-width:44px;display:inline-block"></span>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -276,23 +305,23 @@
           </div>
           <div class="grid cols-3" style="gap:12px">
             <div class="field" id="fieldState">
-              <label data-i18n="lbl_state">State of residence</label>
+              <label><span data-i18n="lbl_state">State of residence</span><span class="info" tabindex="0" data-tip="tip_state">i<span class="tipbox"></span></span></label>
               <select id="candidateState"></select>
               <div class="hint" id="stateRateHint"></div>
             </div>
             <div class="field">
-              <label data-i18n="lbl_age">Age</label>
+              <label><span data-i18n="lbl_age">Age</span><span class="info" tabindex="0" data-tip="tip_age">i<span class="tipbox"></span></span></label>
               <input type="number" id="candidateAge" />
             </div>
             <div class="field">
-              <label data-i18n="lbl_marital">Marital status</label>
+              <label><span data-i18n="lbl_marital">Marital status</span><span class="info" tabindex="0" data-tip="tip_marital">i<span class="tipbox"></span></span></label>
               <select id="maritalStatus">
                 <option value="single" data-i18n="opt_single">Single</option>
                 <option value="married" data-i18n="opt_married">Married</option>
               </select>
             </div>
             <div class="field">
-              <label data-i18n="lbl_children">Children / dependents</label>
+              <label><span data-i18n="lbl_children">Children / dependents</span><span class="info" tabindex="0" data-tip="tip_children">i<span class="tipbox"></span></span></label>
               <input type="number" id="children" />
             </div>
             <div class="field" style="grid-column: span 2">
@@ -305,11 +334,11 @@
         <div class="card">
           <h2 data-i18n="card_package">Package elements</h2>
           <div class="field">
-            <label id="lblBase">Base salary (annual, gross)</label>
+            <label><span id="lblBase">Base salary (annual, gross)</span><span class="info" tabindex="0" data-tip="tip_base">i<span class="tipbox"></span></span></label>
             <div class="inline"><span class="suffix ccsym">$</span><input type="number" id="baseSalary" /></div>
           </div>
           <div class="field">
-            <label data-i18n="lbl_bonus">Annual bonus</label>
+            <label><span data-i18n="lbl_bonus">Annual bonus</span><span class="info" tabindex="0" data-tip="tip_bonus">i<span class="tipbox"></span></span></label>
             <div class="inline">
               <input type="number" id="bonusValue" />
               <select id="bonusType" style="max-width:140px">
@@ -321,7 +350,7 @@
 
           <div id="pkgUs401k">
             <div class="field">
-              <label data-i18n="lbl_401k">Employee 401(k) contribution (% of base, pre-tax)</label>
+              <label><span data-i18n="lbl_401k">Employee 401(k) contribution (% of base, pre-tax)</span><span class="info" tabindex="0" data-tip="tip_401k">i<span class="tipbox"></span></span></label>
               <div class="inline"><input type="number" id="emp401kPct" /><span class="suffix">%</span></div>
               <div class="hint" data-i18n="hint_401k">Reduces income tax, not FICA. Employer match set in Parameters.</div>
             </div>
@@ -330,7 +359,7 @@
           <div id="pkgUsHealth">
             <h3 data-i18n="h3_health">Health insurance</h3>
             <div class="field">
-              <label><input type="checkbox" id="includeHealth" style="width:auto;margin-right:6px" /><span data-i18n="chk_health">Include employer-sponsored health plan</span></label>
+              <label><input type="checkbox" id="includeHealth" style="width:auto;margin-right:6px" /><span data-i18n="chk_health">Include employer-sponsored health plan</span><span class="info" tabindex="0" data-tip="tip_health">i<span class="tipbox"></span></span></label>
             </div>
             <div class="grid cols-2" style="gap:12px">
               <div class="field">
@@ -338,7 +367,7 @@
                 <select id="healthPlanIndex"></select>
               </div>
               <div class="field">
-                <label data-i18n="lbl_tier">Coverage tier</label>
+                <label><span data-i18n="lbl_tier">Coverage tier</span><span class="info" tabindex="0" data-tip="tip_tier">i<span class="tipbox"></span></span></label>
                 <select id="healthTier">
                   <option value="individual" data-i18n="opt_tier_ind">Employee only</option>
                   <option value="family" data-i18n="opt_tier_fam">Employee + family</option>
@@ -349,15 +378,15 @@
 
           <div id="pkgHu" style="display:none">
             <div class="field" style="margin-top:6px">
-              <label><input type="checkbox" id="huPitExempt" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_exempt">Personal income tax exemption (under 25 / mother)</span></label>
+              <label><input type="checkbox" id="huPitExempt" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_exempt">Personal income tax exemption (under 25 / mother)</span><span class="info" tabindex="0" data-tip="tip_pitexempt">i<span class="tipbox"></span></span></label>
             </div>
             <div class="field">
-              <label><input type="checkbox" id="huEkho" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_ekho">EKHO taxation (simplified flat regime)</span></label>
+              <label><input type="checkbox" id="huEkho" style="width:auto;margin-right:6px" /><span data-i18n="pkg_hu_ekho">EKHO taxation (simplified flat regime)</span><span class="info" tabindex="0" data-tip="tip_ekho_toggle">i<span class="tipbox"></span></span></label>
             </div>
           </div>
           <div id="pkgBr" style="display:none">
             <div class="field" style="margin-top:6px">
-              <label><input type="checkbox" id="brInclude13" style="width:auto;margin-right:6px" /><span data-i18n="pkg_br_13th">Include 13th salary (décimo terceiro)</span></label>
+              <label><input type="checkbox" id="brInclude13" style="width:auto;margin-right:6px" /><span data-i18n="pkg_br_13th">Include 13th salary (décimo terceiro)</span><span class="info" tabindex="0" data-tip="tip_br13">i<span class="tipbox"></span></span></label>
             </div>
           </div>
         </div>
@@ -382,15 +411,15 @@
         </h2>
         <div class="grid cols-3" style="gap:12px;margin-bottom:6px">
           <div class="stat">
-            <div class="lbl" id="lblStatNet" data-i18n="stat_net">Employee net</div>
+            <div class="lbl"><span id="lblStatNet" data-i18n="stat_net">Employee net</span><span class="info" tabindex="0" data-tip="tip_stat_net">i<span class="tipbox"></span></span></div>
             <div class="big green" id="netOut">$0</div>
           </div>
           <div class="stat">
-            <div class="lbl" id="lblStatGross" data-i18n="stat_gross">Gross comp</div>
+            <div class="lbl"><span id="lblStatGross" data-i18n="stat_gross">Gross comp</span><span class="info" tabindex="0" data-tip="tip_stat_gross">i<span class="tipbox"></span></span></div>
             <div class="big blue" id="grossOut">$0</div>
           </div>
           <div class="stat">
-            <div class="lbl" id="lblStatFull" data-i18n="stat_full">Full company cost</div>
+            <div class="lbl"><span id="lblStatFull" data-i18n="stat_full">Full company cost</span><span class="info" tabindex="0" data-tip="tip_stat_full">i<span class="tipbox"></span></span></div>
             <div class="big amber" id="fullOut">$0</div>
           </div>
         </div>
@@ -424,7 +453,7 @@
           earned across fewer billable days — which raises the rate.
         </p>
         <div class="field">
-          <label data-i18n="lbl_basis">Annual package to cover (basis)</label>
+          <label><span data-i18n="lbl_basis">Annual package to cover (basis)</span><span class="info" tabindex="0" data-tip="tip_sub_basis">i<span class="tipbox"></span></span></label>
           <select id="subBasis">
             <option value="full" data-i18n="opt_basis_full">Full company cost (apples-to-apples)</option>
             <option value="gross" data-i18n="opt_basis_gross">Gross compensation</option>
@@ -440,19 +469,20 @@
         <h3 data-i18n="h3_worktime">Working time</h3>
         <div class="toolbar" style="margin:0 0 10px">
           <button class="btn ghost sm" id="autoFillBtn" data-i18n="sub_autofill">↻ Auto-fill from country &amp; profile</button>
+          <span class="info" tabindex="0" data-tip="tip_autofill">i<span class="tipbox"></span></span>
           <span class="muted" id="autoFillStatus" style="font-size:11px"></span>
         </div>
         <div class="grid cols-2" style="gap:12px">
-          <div class="field"><label data-i18n="lbl_workdays">Work days / year (base)</label><input type="number" id="subWorkDays" /><div class="hint" data-i18n="hint_workdays">260 = 52 weeks × 5 days</div></div>
+          <div class="field"><label><span data-i18n="lbl_workdays">Work days / year (base)</span><span class="info" tabindex="0" data-tip="tip_workdays">i<span class="tipbox"></span></span></label><input type="number" id="subWorkDays" /><div class="hint" data-i18n="hint_workdays">260 = 52 weeks × 5 days</div></div>
           <div class="field"><label data-i18n="lbl_hoursday">Hours / day</label><input type="number" id="subHoursDay" /></div>
           <div class="field"><label data-i18n="lbl_holidays">Paid holidays</label><input type="number" id="subHolidays" /></div>
-          <div class="field"><label data-i18n="lbl_pto">Vacation / PTO days</label><input type="number" id="subPto" /></div>
+          <div class="field"><label><span data-i18n="lbl_pto">Vacation / PTO days</span><span class="info" tabindex="0" data-tip="tip_pto">i<span class="tipbox"></span></span></label><input type="number" id="subPto" /></div>
           <div class="field"><label data-i18n="lbl_sick">Sick days</label><input type="number" id="subSick" /></div>
           <div class="field"><label data-i18n="lbl_buffer">Non-billable buffer days</label><input type="number" id="subBuffer" /><div class="hint" data-i18n="hint_buffer">Admin, ramp-up, bench</div></div>
         </div>
 
         <div class="field">
-          <label data-i18n="lbl_adjust">Rate adjustment (deviate from computed)</label>
+          <label><span data-i18n="lbl_adjust">Rate adjustment (deviate from computed)</span><span class="info" tabindex="0" data-tip="tip_adjust">i<span class="tipbox"></span></span></label>
           <div class="inline"><input type="number" id="subAdjust" /><span class="suffix">%</span></div>
           <div class="hint" data-i18n="hint_adjust">e.g. +15% contractor premium, or −10% to discount. 0 = exact computed rate.</div>
         </div>
@@ -493,6 +523,19 @@
 
   <!-- ============ PARAMETERS ============ -->
   <section class="view" id="view-params">
+   <div class="card" style="margin-bottom:20px">
+     <h2>
+       <span><span data-i18n="fx_card_title">Exchange rates</span><span class="info" tabindex="0" data-tip="tip_fx">i<span class="tipbox"></span></span></span>
+       <button class="btn ghost sm" id="fxRefreshBtn" data-i18n="fx_refresh">↻ Refresh now</button>
+     </h2>
+     <div class="muted" id="fxSource" style="font-size:12px"></div>
+     <details style="margin-top:10px">
+       <summary data-i18n="fx_show">Show rates</summary>
+       <div id="fxTable" style="margin-top:10px"></div>
+     </details>
+     <div class="note" data-i18n="fx_note" style="margin-top:10px">Rates auto-refresh weekly.</div>
+   </div>
+
    <div id="params-US">
     <div class="card" style="margin-bottom:20px">
       <h2>
@@ -598,6 +641,8 @@
         <div class="field"><label data-i18n="p_hu_ekho_empr">EKHO — payer (employer)</label>
           <div class="inline"><input type="number" step="0.1" data-cp="huP" data-k="ekhoEmployer" /><span class="suffix">%</span></div></div>
       </div>
+      <div class="field"><label><span data-i18n="p_hu_minwage">Annual minimum wage (EKHO threshold)</span><span class="info" tabindex="0" data-tip="tip_ekho">i<span class="tipbox"></span></span></label>
+        <div class="inline"><span class="suffix">Ft</span><input type="number" data-cp="huP" data-k="minWage" /></div></div>
     </div>
    </div>
 
@@ -645,6 +690,14 @@
   <!-- ============ PROPOSAL ============ -->
   <section class="view" id="view-proposal">
     <div class="toolbar">
+      <span class="muted" style="font-size:12px;display:flex;align-items:center;gap:6px">
+        <span data-i18n="prop_basis">Proposal basis</span>
+        <select id="proposalPeriodSel" style="width:auto">
+          <option value="annual" data-i18n="basis_annual">Annual</option>
+          <option value="monthly" data-i18n="basis_monthly">Monthly</option>
+        </select>
+        <span class="info" tabindex="0" data-tip="tip_prop_basis">i<span class="tipbox"></span></span>
+      </span>
       <button class="btn ghost" id="fillTemplateBtn" data-i18n="btn_resettpl">Reset template</button>
       <button class="btn ghost" id="importSampleBtn" data-i18n="btn_import">📄 Template from sample</button>
       <input type="file" id="sampleFile" accept=".docx,.txt,.md" style="display:none" />
@@ -867,10 +920,22 @@ async function fxRefresh(force) {
   } catch (e) {}
   fxStatus();
 }
-function fxStatus() {
-  const el = $("fxStatus"); if (!el) return;
-  const when = FX.ts ? new Date(FX.ts).toLocaleDateString() : "—";
-  el.textContent = `${t("fx_label")}: ${FX.source} · ${when}`;
+const FX_PAIRS = [["USD", "HUF"], ["EUR", "HUF"], ["BRL", "HUF"], ["EUR", "USD"], ["BRL", "USD"], ["EUR", "BRL"]];
+const fxDir = FX_PAIRS.map(() => false); // false = as listed, true = swapped (display only)
+function fxStatus() { renderFxCard(); }
+function renderFxCard() {
+  const src = $("fxSource");
+  if (src) {
+    const when = FX.ts ? new Date(FX.ts).toLocaleString() : "—";
+    src.textContent = t("fx_updated").replace("{src}", FX.source).replace("{when}", when);
+  }
+  const tbl = $("fxTable"); if (!tbl) return;
+  tbl.innerHTML = FX_PAIRS.map((p, i) => {
+    const d = fxDir[i] ? [p[1], p[0]] : p;
+    const rate = conv(1, d[0], d[1]);
+    const val = rate.toLocaleString("en-US", { maximumFractionDigits: rate < 10 ? 4 : 2 });
+    return `<div class="fx-row"><span class="fx-pair">1 ${d[0]} → ${d[1]}</span><span class="fx-val">${val}</span><button class="btn ghost sm fxswap" data-i="${i}">${t("fx_swap")}</button></div>`;
+  }).join("");
 }
 // display helpers: calc works in country-native currency; UI shows the active display currency (state.curr)
 function dconv(v, r) { return conv(v, COUNTRIES[r.cc].currency, state.curr); }
@@ -905,6 +970,35 @@ const I18N = {
     ai_title: "AI settings (Anthropic Claude)", ai_key_label: "API key (stored locally in your browser only)", ai_model_label: "Model", ai_instr_label: "Instruction to the AI", generating: "Generating…",
     tpl_title: "Template editor", tpl_supports: "— supports {{placeholders}}", ph_placeholders: "Available placeholders", preview_title: "Preview",
     btn_import: "📄 Template from sample", import_reading: "Reading file…", import_templatizing: "Building template…", import_done: "Template created from sample ✓", import_err: "Import error", import_empty: "No readable text found in the file.", import_needai: "Templatizing needs AI: add your API key in AI settings, or host the backend.",
+    sel_country: "Country", sel_currency: "Currency", sel_basis: "Basis", sel_language: "Language", prop_basis: "Proposal basis", per_year: "per year", per_month: "per month",
+    fx_card_title: "Exchange rates", fx_refresh: "↻ Refresh now", fx_show: "Show rates", fx_swap: "↔ swap", fx_updated: "Updated: {src} · {when}", fx_note: "Rates auto-refresh weekly (hybrid: MNB when a backend is hosted, otherwise ECB; built-in snapshot offline).", ekho_normal: "up to min. wage",
+    p_hu_minwage: "Annual minimum wage (EKHO threshold)",
+    tip_country: "Selects the country's tax & contribution rules and native currency.",
+    tip_currency: "Currency for entering and displaying amounts. Switching converts the values.",
+    tip_basis: "Whether salary is entered and shown monthly or annually. Switching converts amounts and results.",
+    tip_fx: "Source and date of the exchange rates; auto-refreshes weekly. Full table in Parameters.",
+    tip_prop_basis: "Show the proposal's figures per year or per month.",
+    tip_ekho: "Income up to the annual minimum wage is taxed normally (SZJA + TB); only the part above it is EKHO-taxed (employee 15%). Payer EKHO is 0% since 2022.",
+    tip_state: "Sets the state income-tax rate (auto-filled from the state, editable in Parameters).",
+    tip_age: "Drives the 401(k) catch-up note (US) and the statutory vacation estimate.",
+    tip_marital: "Single vs. married — selects the federal tax brackets and standard deduction (US).",
+    tip_children: "Affects HU family allowance, BR dependents and the vacation estimate.",
+    tip_base: "Gross base salary, in the chosen currency and basis (monthly/annual).",
+    tip_bonus: "Annual bonus — a % of base or a fixed amount.",
+    tip_401k: "Employee pre-tax retirement contribution (US). Reduces income tax, not FICA.",
+    tip_health: "Include an employer-sponsored health plan in the package (US).",
+    tip_tier: "Coverage for the employee only, or for the whole family.",
+    tip_pitexempt: "Zeroes Hungarian personal income tax (under-25 / mother exemptions).",
+    tip_ekho_toggle: "Switch the Hungarian calculation to EKHO taxation (eligible professions).",
+    tip_br13: "Include the mandatory 13th-month salary (Brazil).",
+    tip_stat_net: "Estimated take-home pay after taxes and employee deductions.",
+    tip_stat_gross: "Total gross compensation (base + bonus).",
+    tip_stat_full: "Everything the employer pays: gross + employer contributions + benefits.",
+    tip_sub_basis: "Which figure the contractor's rate should cover.",
+    tip_autofill: "Loads work days (public-holiday API) and a statutory vacation estimate from the candidate's age & children.",
+    tip_workdays: "Base weekdays per year, before days off.",
+    tip_pto: "Vacation / PTO days the contractor must cover unpaid.",
+    tip_adjust: "Premium (+) or discount (−) applied to the computed hourly rate.",
     // dynamic
     li_base: "Base salary", li_bonus: "Bonus", li_gross: "Gross", li_net: "Net take-home", li_gross_comp: "Gross compensation", li_fullcost: "Full company cost",
     li_401k_emp: "− 401(k) employee", li_health_emp: "− Health premium", li_fed: "− Federal income tax", li_state: "− State income tax", li_ss: "− Social Security", li_medicare: "− Medicare",
@@ -966,6 +1060,35 @@ const I18N = {
     ai_title: "AI beállítások (Anthropic Claude)", ai_key_label: "API kulcs (csak helyben, a böngészőben tárolva)", ai_model_label: "Modell", ai_instr_label: "Utasítás az AI-nak", generating: "Generálás…",
     tpl_title: "Sablonszerkesztő", tpl_supports: "— támogatja a {{helykitöltőket}}", ph_placeholders: "Elérhető helykitöltők", preview_title: "Előnézet",
     btn_import: "📄 Sablon mintából", import_reading: "Fájl beolvasása…", import_templatizing: "Sablon készítése…", import_done: "Sablon létrehozva a mintából ✓", import_err: "Import hiba", import_empty: "Nem található olvasható szöveg a fájlban.", import_needai: "A sablonkészítéshez AI kell: add meg az API kulcsot az AI beállításoknál, vagy hosztold a backendet.",
+    sel_country: "Ország", sel_currency: "Pénznem", sel_basis: "Alap", sel_language: "Nyelv", prop_basis: "Ajánlat alapja", per_year: "évente", per_month: "havonta",
+    fx_card_title: "Árfolyamok", fx_refresh: "↻ Frissítés most", fx_show: "Árfolyamok mutatása", fx_swap: "↔ csere", fx_updated: "Frissítve: {src} · {when}", fx_note: "Az árfolyamok hetente automatikusan frissülnek (hibrid: MNB ha van backend, egyébként ECB; offline beépített pillanatkép).", ekho_normal: "minimálbérig",
+    p_hu_minwage: "Éves minimálbér (EKHO küszöb)",
+    tip_country: "Kiválasztja az ország adó- és járulékszabályait és natív pénznemét.",
+    tip_currency: "A beviteli és megjelenítési pénznem. Váltáskor átszámítja az értékeket.",
+    tip_basis: "A bér havi vagy éves megadása és megjelenítése. Váltáskor átszámol.",
+    tip_fx: "Az árfolyamok forrása és dátuma; hetente automatikusan frissül. Teljes tábla a Paramétereknél.",
+    tip_prop_basis: "Az ajánlat számai éves vagy havi bontásban.",
+    tip_ekho: "Az éves minimálbérig általános adózás (SZJA + TB); csak az afölötti rész EKHO-zik (magánszemély 15%). A kifizetői EKHO 2022 óta 0%.",
+    tip_state: "Beállítja az állami jövedelemadó kulcsát (auto az államból, a Paramétereknél módosítható).",
+    tip_age: "A 401(k) felzárkóztató jelzést (US) és a törvényi szabadnap-becslést befolyásolja.",
+    tip_marital: "Egyedülálló/házas — a szövetségi sávokat és levonást választja (US).",
+    tip_children: "Befolyásolja a HU családi kedvezményt, a BR eltartottakat és a szabadnap-becslést.",
+    tip_base: "Bruttó alapbér, a választott pénznemben és alapon (havi/éves).",
+    tip_bonus: "Éves bónusz — az alapbér %-a vagy fix összeg.",
+    tip_401k: "Munkavállalói nyugdíj-előtakarékosság adó előtt (US). Az SZJA-t csökkenti, a FICA-t nem.",
+    tip_health: "Munkáltatói egészségbiztosítási csomag beszámítása (US).",
+    tip_tier: "Csak a munkavállalóra vagy az egész családra szóló fedezet.",
+    tip_pitexempt: "Nullázza a magyar személyi jövedelemadót (25 alatti / anya kedvezmény).",
+    tip_ekho_toggle: "A magyar számítás átváltása EKHO adózásra (jogosult foglalkozásoknál).",
+    tip_br13: "A kötelező 13. havi bér beszámítása (Brazília).",
+    tip_stat_net: "Becsült kézhez kapott bér adók és levonások után.",
+    tip_stat_gross: "Teljes bruttó javadalmazás (alap + bónusz).",
+    tip_stat_full: "Amit a munkáltató fizet: bruttó + munkáltatói terhek + juttatások.",
+    tip_sub_basis: "Melyik összeget fedezze a kontraktor díja.",
+    tip_autofill: "Betölti a munkanapokat (ünnep-API) és a törvényi szabadnap-becslést a kor és gyerekszám alapján.",
+    tip_workdays: "Éves munkanapok (hétköznap) a szabadnapok előtt.",
+    tip_pto: "Szabadság / PTO napok, amit a kontraktornak fizetetlenül kell fedeznie.",
+    tip_adjust: "Felár (+) vagy kedvezmény (−) a számított óradíjon.",
     li_base: "Alapbér", li_bonus: "Bónusz", li_gross: "Bruttó", li_net: "Nettó kifizetés", li_gross_comp: "Bruttó javadalmazás", li_fullcost: "Teljes munkáltatói költség",
     li_401k_emp: "− 401(k) munkavállalói", li_health_emp: "− Egészségbiztosítási díj", li_fed: "− Szövetségi jövedelemadó", li_state: "− Állami jövedelemadó", li_ss: "− Társadalombiztosítás (SS)", li_medicare: "− Medicare",
     li_empr_ss: "Munkáltatói társadalombiztosítás", li_empr_medicare: "Munkáltatói Medicare", li_workerscomp: "Üzemi baleseti biztosítás", li_401k_match: "401(k) munkáltatói kiegészítés", li_health_empr: "Egészségbiztosítás (munkáltatói rész)", li_other_empr: "Egyéb munkáltatói költség",
@@ -1067,7 +1190,7 @@ function applyCountryUI() {
 
 const DEFAULTS = {
   // ui
-  lang: "en", country: "US", curr: "USD", period: "annual",
+  lang: "en", country: "US", curr: "USD", period: "annual", proposalPeriod: "annual",
   // candidate
   candidateName: "", candidateState: "CA", candidateAge: 35,
   maritalStatus: "single", children: 0, candidateNotes: "",
@@ -1077,7 +1200,7 @@ const DEFAULTS = {
   huPitExempt: false, brInclude13: true, huEkho: false,
   benefits: JSON.parse(JSON.stringify(DEFAULT_BENEFITS)),
   // country-specific parameters (2025 approximate defaults; all editable)
-  huP: { pitRate: 15, empContrib: 18.5, employerContrib: 13, famAllow1: 66670, famAllow2: 133330, famAllow3: 220000, otherEmployer: 0, ekhoEmp: 15, ekhoEmployer: 0 },
+  huP: { pitRate: 15, empContrib: 18.5, employerContrib: 13, famAllow1: 66670, famAllow2: 133330, famAllow3: 220000, otherEmployer: 0, ekhoEmp: 15, ekhoEmployer: 0, minWage: 3489600 },
   atP: { empSV: 18.07, empSVcap: 77400, employerSV: 20.98, db: 3.7, dz: 0.36, kommunal: 3.0, otherEmployer: 0 },
   brP: { employerINSS: 20, rat: 2, sistemaS: 5.8, fgts: 8 },
   // parameters — payroll taxes
@@ -1156,7 +1279,13 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach(el => { const v = t(el.getAttribute("data-i18n")); if (v != null) el.textContent = v; });
   document.querySelectorAll("[data-i18n-ph]").forEach(el => { const v = t(el.getAttribute("data-i18n-ph")); if (v != null) el.placeholder = v; });
   const ft = $("footerText"); if (ft) ft.innerHTML = t("footer_html");
+  applyTooltips();
   document.documentElement.lang = state.lang;
+}
+function applyTooltips() {
+  document.querySelectorAll(".info[data-tip]").forEach(el => {
+    const box = el.querySelector(".tipbox"); if (box) box.textContent = t(el.getAttribute("data-tip"));
+  });
 }
 const escHtml = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const escAttr = t => String(t).replace(/"/g,"&quot;").replace(/</g,"&lt;");
@@ -1281,14 +1410,26 @@ function calcHU(base, bonus) {
   const other = +p.otherEmployer || 0;
   let net, eLines, segTax, szocho;
   if (s.huEkho) {
-    const ekho = gross * (+p.ekhoEmp || 15) / 100;
-    net = gross - ekho;
-    szocho = gross * (+p.ekhoEmployer || 0) / 100;
-    segTax = ekho;
+    // EKHO can only be applied to income ABOVE the minimum wage, which is taxed normally.
+    const minWage = +p.minWage || 0;
+    const n0 = +s.children || 0;
+    let mRed = n0 === 1 ? (+p.famAllow1 || 0) : n0 === 2 ? (+p.famAllow2 || 0) * 2 : n0 >= 3 ? (+p.famAllow3 || 0) * n0 : 0;
+    const annualRed = mRed * 12;
+    const normal = Math.min(gross, minWage);            // taxed under general rules
+    const ekhoBase = Math.max(0, gross - minWage);      // EKHO-eligible part
+    const pitBaseN = s.huPitExempt ? 0 : Math.max(0, normal - annualRed);
+    const pitN = pitBaseN * (+p.pitRate || 0) / 100;
+    const tbN = normal * (+p.empContrib || 0) / 100;
+    const ekho = ekhoBase * (+p.ekhoEmp || 15) / 100;
+    net = gross - pitN - tbN - ekho;
+    szocho = normal * (+p.employerContrib || 0) / 100 + ekhoBase * (+p.ekhoEmployer || 0) / 100;
+    segTax = pitN + tbN + ekho;
     eLines = [
       { l: t("li_base"), v: base, k: "add" },
       { l: t("li_bonus"), v: bonus, k: "add" },
       { l: t("li_gross"), v: gross, k: "subtotal" },
+      { l: t("li_pit_hu") + " — " + t("ekho_normal"), v: pitN, k: "sub" },
+      { l: t("li_tb_hu") + " — " + t("ekho_normal"), v: tbN, k: "sub" },
       { l: t("li_ekho_emp"), v: ekho, k: "sub" },
       { l: t("li_net"), v: net, k: "total" }
     ];
@@ -1663,6 +1804,7 @@ function loadHistoryEntry(cid, hid) {
 function proposalVars() {
   const r = calc(), s = state, cc = r.cc, x = r.extra;
   const loc = cc === "US" ? (STATE_NAMES[s.candidateState] || "United States") : COUNTRIES[cc].name;
+  const pp = state.proposalPeriod === "monthly" ? 1 / 12 : 1;
   return {
     candidate_name: s.candidateName || "[Candidate]",
     country: COUNTRIES[cc].name,
@@ -1672,16 +1814,17 @@ function proposalVars() {
     candidate_age: String(s.candidateAge || "—"),
     marital_status: s.maritalStatus === "married" ? t("opt_married") : t("opt_single"),
     children: String(s.children || 0),
-    base_salary: dfmt(r.base, r),
-    bonus: dfmt(r.bonus, r),
-    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% ${t("of_base")}` : `${dfmt(r.bonus, r)} ${t("fixed")}`,
-    gross: dfmt(r.gross, r),
-    net: dfmt(r.net, r),
-    full_cost: dfmt(r.fullCost, r),
-    employer_contrib: dfmt(r.segs.emp, r),
-    employer_401k: x.employer401k != null ? dfmt(x.employer401k, r) : "—",
-    employer_health: x.employerHealth != null ? dfmt(x.employerHealth, r) : "—",
-    health_total: x.healthTotal != null ? dfmt(x.healthTotal, r) : "—",
+    pay_period: state.proposalPeriod === "monthly" ? t("per_month") : t("per_year"),
+    base_salary: dfmt(r.base * pp, r),
+    bonus: dfmt(r.bonus * pp, r),
+    bonus_desc: s.bonusType === "pct" ? `${s.bonusValue}% ${t("of_base")}` : `${dfmt(r.bonus * pp, r)} ${t("fixed")}`,
+    gross: dfmt(r.gross * pp, r),
+    net: dfmt(r.net * pp, r),
+    full_cost: dfmt(r.fullCost * pp, r),
+    employer_contrib: dfmt(r.segs.emp * pp, r),
+    employer_401k: x.employer401k != null ? dfmt(x.employer401k * pp, r) : "—",
+    employer_health: x.employerHealth != null ? dfmt(x.employerHealth * pp, r) : "—",
+    health_total: x.healthTotal != null ? dfmt(x.healthTotal * pp, r) : "—",
     health_plan: x.planName || "—",
     health_tier: x.healthTier ? (x.healthTier === "family" ? t("opt_tier_fam") : t("opt_tier_ind")) : "—",
     emp_401k_pct: (s.emp401kPct || 0) + "%",
@@ -2067,6 +2210,7 @@ function hydrateInputs() {
   if (savedKey) $("aiKey").value = savedKey;
   $("langSel").value = state.lang;
   $("countrySel").value = state.country;
+  $("proposalPeriodSel").value = state.proposalPeriod;
   document.querySelectorAll("[data-cp]").forEach(el => { el.value = state[el.dataset.cp][el.dataset.k]; });
   updateStateRateHint();
 }
@@ -2100,6 +2244,11 @@ function bindInputs() {
   $("currSel").addEventListener("change", e => setCurrency(e.target.value));
   $("periodBtn").addEventListener("click", () => setPeriod(state.period === "monthly" ? "annual" : "monthly"));
   $("autoFillBtn").addEventListener("click", autoFillWorkdays);
+  $("fxRefreshBtn").addEventListener("click", () => fxRefresh(true));
+  $("fxTable").addEventListener("click", e => {
+    const sw = e.target.closest(".fxswap"); if (!sw) return;
+    const i = +sw.dataset.i; fxDir[i] = !fxDir[i]; renderFxCard();
+  });
   // Country-specific parameter inputs
   document.querySelectorAll("[data-cp]").forEach(el => {
     const obj = el.dataset.cp, k = el.dataset.k;
@@ -2209,6 +2358,7 @@ $("insertNumbersBtn").addEventListener("click", () => {
 });
 $("importSampleBtn").addEventListener("click", () => $("sampleFile").click());
 $("sampleFile").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; if (f) templatizeFromSample(f); e.target.value = ""; });
+$("proposalPeriodSel").addEventListener("change", e => { state.proposalPeriod = e.target.value; saveState(); renderProposal(); });
 $("saveHistBtn1").addEventListener("click", saveToHistory);
 $("saveHistBtn2").addEventListener("click", saveToHistory);
 $("exportMdBtn").addEventListener("click", () => exportProposal("md"));
