@@ -21,6 +21,22 @@ const SYSTEM_PROMPT =
   "(headings, bold, tables, bullet lists). Never invent or alter any monetary figures or personal " +
   "details — use only the data provided. Return ONLY the proposal markdown, no commentary.";
 
+const TEMPLATIZE_SYSTEM =
+  "You convert a sample compensation offer into a REUSABLE Markdown template. " +
+  "Replace candidate-specific values (names, salary/bonus amounts, dates, locations, ages, " +
+  "candidate-specific percentages) with placeholder tokens from the ALLOWED list only. " +
+  "Preserve the company's wording, tone, structure, headings, lists and tables. Keep any fixed " +
+  "boilerplate as-is. Do not invent placeholders outside the allowed list; if no placeholder fits " +
+  "a specific value, leave the text as plain prose. Return ONLY the Markdown template, no commentary.";
+
+function templatizeUser(body) {
+  const ph = Array.isArray(body.placeholders) ? body.placeholders.slice(0, 100) : [];
+  const sample = typeof body.sample === "string" ? body.sample.slice(0, 30000) : "";
+  return "ALLOWED placeholders (use only these tokens, in {{double_braces}}):\n" +
+    ph.map(k => "{{" + k + "}}").join(", ") +
+    "\n\nSample offer to convert into a template:\n---\n" + sample + "\n---\n\nReturn ONLY the Markdown template.";
+}
+
 function cors(extra) {
   return Object.assign({
     "access-control-allow-origin": "*",
@@ -54,7 +70,9 @@ export async function onRequestPost(context) {
       : "Improve clarity, warmth, and professionalism. Keep all numbers exactly as given.";
     const model = ALLOWED_MODELS.includes(body.model) ? body.model : DEFAULT_MODEL;
 
-    const userMsg =
+    const templatize = body.task === "templatize";
+    const system = templatize ? TEMPLATIZE_SYSTEM : SYSTEM_PROMPT;
+    const userMsg = templatize ? templatizeUser(body) :
       "Verified candidate & package data (do not change any value):\n" + JSON.stringify(vars, null, 2) +
       "\n\nCurrent draft to revise (may be empty):\n---\n" + current +
       "\n---\n\nInstruction: " + instruction + "\n\nProduce the full proposal in Markdown.";
@@ -69,7 +87,7 @@ export async function onRequestPost(context) {
       body: JSON.stringify({
         model,
         max_tokens: MAX_TOKENS,
-        system: SYSTEM_PROMPT,
+        system,
         messages: [{ role: "user", content: userMsg }]
       })
     });

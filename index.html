@@ -646,6 +646,8 @@
   <section class="view" id="view-proposal">
     <div class="toolbar">
       <button class="btn ghost" id="fillTemplateBtn" data-i18n="btn_resettpl">Reset template</button>
+      <button class="btn ghost" id="importSampleBtn" data-i18n="btn_import">📄 Template from sample</button>
+      <input type="file" id="sampleFile" accept=".docx,.txt,.md" style="display:none" />
       <button class="btn ghost" id="insertNumbersBtn" data-i18n="btn_insertnum">Insert live numbers</button>
       <button class="btn ghost" id="saveHistBtn2" data-i18n="btn_savehist">💾 Save to history</button>
       <div class="spacer"></div>
@@ -902,6 +904,7 @@ const I18N = {
     btn_resettpl: "Reset template", btn_insertnum: "Insert live numbers", btn_md: "⬇ .md", btn_html: "⬇ .html", btn_print: "🖨 Print / PDF", btn_aisettings: "AI settings", btn_aigen: "✨ Generate / polish with AI",
     ai_title: "AI settings (Anthropic Claude)", ai_key_label: "API key (stored locally in your browser only)", ai_model_label: "Model", ai_instr_label: "Instruction to the AI", generating: "Generating…",
     tpl_title: "Template editor", tpl_supports: "— supports {{placeholders}}", ph_placeholders: "Available placeholders", preview_title: "Preview",
+    btn_import: "📄 Template from sample", import_reading: "Reading file…", import_templatizing: "Building template…", import_done: "Template created from sample ✓", import_err: "Import error", import_empty: "No readable text found in the file.", import_needai: "Templatizing needs AI: add your API key in AI settings, or host the backend.",
     // dynamic
     li_base: "Base salary", li_bonus: "Bonus", li_gross: "Gross", li_net: "Net take-home", li_gross_comp: "Gross compensation", li_fullcost: "Full company cost",
     li_401k_emp: "− 401(k) employee", li_health_emp: "− Health premium", li_fed: "− Federal income tax", li_state: "− State income tax", li_ss: "− Social Security", li_medicare: "− Medicare",
@@ -962,6 +965,7 @@ const I18N = {
     btn_resettpl: "Sablon visszaállítása", btn_insertnum: "Élő számok beszúrása", btn_md: "⬇ .md", btn_html: "⬇ .html", btn_print: "🖨 Nyomtatás / PDF", btn_aisettings: "AI beállítások", btn_aigen: "✨ Generálás / csiszolás AI-val",
     ai_title: "AI beállítások (Anthropic Claude)", ai_key_label: "API kulcs (csak helyben, a böngészőben tárolva)", ai_model_label: "Modell", ai_instr_label: "Utasítás az AI-nak", generating: "Generálás…",
     tpl_title: "Sablonszerkesztő", tpl_supports: "— támogatja a {{helykitöltőket}}", ph_placeholders: "Elérhető helykitöltők", preview_title: "Előnézet",
+    btn_import: "📄 Sablon mintából", import_reading: "Fájl beolvasása…", import_templatizing: "Sablon készítése…", import_done: "Sablon létrehozva a mintából ✓", import_err: "Import hiba", import_empty: "Nem található olvasható szöveg a fájlban.", import_needai: "A sablonkészítéshez AI kell: add meg az API kulcsot az AI beállításoknál, vagy hosztold a backendet.",
     li_base: "Alapbér", li_bonus: "Bónusz", li_gross: "Bruttó", li_net: "Nettó kifizetés", li_gross_comp: "Bruttó javadalmazás", li_fullcost: "Teljes munkáltatói költség",
     li_401k_emp: "− 401(k) munkavállalói", li_health_emp: "− Egészségbiztosítási díj", li_fed: "− Szövetségi jövedelemadó", li_state: "− Állami jövedelemadó", li_ss: "− Társadalombiztosítás (SS)", li_medicare: "− Medicare",
     li_empr_ss: "Munkáltatói társadalombiztosítás", li_empr_medicare: "Munkáltatói Medicare", li_workerscomp: "Üzemi baleseti biztosítás", li_401k_match: "401(k) munkáltatói kiegészítés", li_health_empr: "Egészségbiztosítás (munkáltatói rész)", li_other_empr: "Egyéb munkáltatói költség",
@@ -1894,8 +1898,7 @@ async function proxyGenerate(ep, payload) {
   return { text: (j.text || "").trim() };
 }
 
-async function directGenerate(payload, key) {
-  const { sys, userMsg } = buildPrompt(payload.vars, payload.current, payload.instruction);
+async function directRaw(sys, userMsg, model, key) {
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -1904,7 +1907,7 @@ async function directGenerate(payload, key) {
       "anthropic-version": "2023-06-01",
       "anthropic-dangerous-direct-browser-access": "true"
     },
-    body: JSON.stringify({ model: payload.model, max_tokens: 4000, system: sys, messages: [{ role: "user", content: userMsg }] })
+    body: JSON.stringify({ model: model || "claude-opus-4-8", max_tokens: 4000, system: sys, messages: [{ role: "user", content: userMsg }] })
   });
   if (!resp.ok) {
     const t = await resp.text(); let m = resp.status + " " + resp.statusText;
@@ -1913,6 +1916,10 @@ async function directGenerate(payload, key) {
   }
   const data = await resp.json();
   return (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+}
+async function directGenerate(payload, key) {
+  const { sys, userMsg } = buildPrompt(payload.vars, payload.current, payload.instruction);
+  return directRaw(sys, userMsg, payload.model, key);
 }
 
 async function generateWithAI() {
@@ -1945,6 +1952,58 @@ async function generateWithAI() {
     toast("AI error: " + e.message, "err");
   } finally {
     btn.disabled = false; btn.textContent = t("btn_aigen");
+  }
+}
+
+/* ---------- Templatize from a sample offer (.docx / .txt / .md) ---------- */
+function loadMammoth() {
+  return new Promise((resolve, reject) => {
+    if (window.mammoth) return resolve(window.mammoth);
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
+    s.onload = () => window.mammoth ? resolve(window.mammoth) : reject(new Error("mammoth unavailable"));
+    s.onerror = () => reject(new Error("Could not load the .docx reader (offline?)"));
+    document.head.appendChild(s);
+  });
+}
+async function readSampleFile(file) {
+  const name = (file.name || "").toLowerCase();
+  if (name.endsWith(".docx")) {
+    const mammoth = await loadMammoth();
+    const buf = await file.arrayBuffer();
+    const res = await mammoth.convertToMarkdown({ arrayBuffer: buf });
+    return ((res && res.value) || "").trim();
+  }
+  return (await file.text()).trim();
+}
+async function templatizeFromSample(file) {
+  const btn = $("importSampleBtn"), orig = btn.textContent; btn.disabled = true; btn.textContent = t("import_reading");
+  try {
+    const sample = await readSampleFile(file);
+    if (!sample) throw new Error(t("import_empty"));
+    btn.textContent = t("import_templatizing");
+    const placeholders = Object.keys(proposalVars());
+    const model = state.aiModel || "claude-opus-4-8";
+    const userKey = localStorage.getItem(KEY_STORAGE) || $("aiKey").value.trim();
+    let text;
+    if (userKey) {
+      const sys = "You convert a sample compensation offer into a REUSABLE Markdown template. Replace candidate-specific values (names, salary/bonus amounts, dates, locations, ages, candidate-specific percentages) with placeholder tokens from the ALLOWED list only. Preserve the company's wording, tone, structure, headings, lists and tables. Do not invent placeholders outside the allowed list. Return ONLY the Markdown template.";
+      const userMsg = "ALLOWED placeholders (use only these, in {{double_braces}}):\n" + placeholders.map(k => "{{" + k + "}}").join(", ") +
+        "\n\nSample offer:\n---\n" + sample.slice(0, 30000) + "\n---\n\nReturn ONLY the Markdown template.";
+      text = await directRaw(sys, userMsg, model, userKey);
+    } else {
+      const ep = aiEndpoint();
+      const res = ep ? await proxyGenerate(ep, { task: "templatize", sample: sample.slice(0, 30000), placeholders, model }) : { noBackend: true };
+      if (res.noBackend) { $("aiSettings").style.display = ""; probeBackend(); throw new Error(t("import_needai")); }
+      text = res.text;
+    }
+    if (!text) throw new Error(t("import_empty"));
+    $("proposalText").value = text; state.proposalText = text; saveState(); renderProposal();
+    toast(t("import_done"), "ok");
+  } catch (e) {
+    toast(t("import_err") + ": " + e.message, "err");
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
   }
 }
 
@@ -2148,6 +2207,8 @@ $("insertNumbersBtn").addEventListener("click", () => {
   state.proposalText = $("proposalText").value; saveState(); renderProposal();
   toast("Live numbers inserted", "ok");
 });
+$("importSampleBtn").addEventListener("click", () => $("sampleFile").click());
+$("sampleFile").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; if (f) templatizeFromSample(f); e.target.value = ""; });
 $("saveHistBtn1").addEventListener("click", saveToHistory);
 $("saveHistBtn2").addEventListener("click", saveToHistory);
 $("exportMdBtn").addEventListener("click", () => exportProposal("md"));
