@@ -438,6 +438,10 @@
         </div>
 
         <h3 data-i18n="h3_worktime">Working time</h3>
+        <div class="toolbar" style="margin:0 0 10px">
+          <button class="btn ghost sm" id="autoFillBtn" data-i18n="sub_autofill">↻ Auto-fill from country &amp; profile</button>
+          <span class="muted" id="autoFillStatus" style="font-size:11px"></span>
+        </div>
         <div class="grid cols-2" style="gap:12px">
           <div class="field"><label data-i18n="lbl_workdays">Work days / year (base)</label><input type="number" id="subWorkDays" /><div class="hint" data-i18n="hint_workdays">260 = 52 weeks × 5 days</div></div>
           <div class="field"><label data-i18n="lbl_hoursday">Hours / day</label><input type="number" id="subHoursDay" /></div>
@@ -915,6 +919,7 @@ const I18N = {
     basis_full: "full company cost", basis_gross: "gross compensation", basis_net: "employee net", basis_custom: "the custom amount",
     of_base: "of base salary", fixed: "fixed",
     fx_label: "Rates", basis_monthly: "Monthly", basis_annual: "Annual", lbl_base_m: "Base salary (monthly, gross)", lbl_base_a: "Base salary (annual, gross)",
+    sub_autofill: "↻ Auto-fill from country & profile", sub_autofill_loading: "Loading public holidays…", sub_autofill_offline: "offline estimate", sub_autofill_done: "{src}: {days} workdays · {hol} holidays · {pto} vacation days",
     footer_html: "<b>Estimates only.</b> Tax/contribution rates are built-in approximations for 2025 and are all editable on the Parameters tab. This tool is for offer modeling and is <b>not</b> tax, legal, or financial advice — verify figures with a qualified payroll/tax professional. &nbsp;·&nbsp; <b>Your data stays on your device:</b> all inputs, candidates, and your optional API key are stored only in this browser (localStorage) and are never uploaded.",
     w_title: "👋 Welcome to the Compensation Package Calculator", w_sub: "Model compensation offers across the US, Hungary, Austria and Brazil — all in your browser.",
     w_f1t: "Compensation", w_f1d: "Enter a candidate & package — see estimated employee net, gross, and fully-loaded company cost in the local currency.",
@@ -973,6 +978,7 @@ const I18N = {
     basis_full: "teljes munkáltatói költség", basis_gross: "bruttó javadalmazás", basis_net: "munkavállalói nettó", basis_custom: "az egyedi összeg",
     of_base: "az alapbérből", fixed: "fix",
     fx_label: "Árfolyam", basis_monthly: "Havi", basis_annual: "Éves", lbl_base_m: "Alapbér (havi, bruttó)", lbl_base_a: "Alapbér (éves, bruttó)",
+    sub_autofill: "↻ Automatikus kitöltés ország és profil alapján", sub_autofill_loading: "Munkaszüneti napok betöltése…", sub_autofill_offline: "offline becslés", sub_autofill_done: "{src}: {days} munkanap · {hol} ünnep · {pto} szabadnap",
     footer_html: "<b>Csak becslés.</b> Az adó- és járulékkulcsok beépített, 2025-ös közelítések, amelyek mind szerkeszthetők a Paraméterek fülön. Ez az eszköz ajánlat-modellezésre szolgál, és <b>nem</b> minősül adó-, jogi vagy pénzügyi tanácsadásnak — ellenőrizd az értékeket szakképzett bér-/adószakértővel. &nbsp;·&nbsp; <b>Az adataid a készülékeden maradnak:</b> minden adat, jelölt és az opcionális API kulcs csak ebben a böngészőben (localStorage) tárolódik, és sehová sem töltődik fel.",
     w_title: "👋 Üdv a Bérkalkulátorban", w_sub: "Modellezz javadalmazási ajánlatokat az USA, Magyarország, Ausztria és Brazília esetén — mindezt a böngésződben.",
     w_f1t: "Javadalmazás", w_f1d: "Add meg a jelöltet és a csomagot — lásd a becsült nettót, bruttót és a teljes munkáltatói költséget helyi pénznemben.",
@@ -1457,6 +1463,48 @@ function renderSub() {
 }
 function labelFor(b) {
   return { full: t("basis_full"), gross: t("basis_gross"), net: t("basis_net"), custom: t("basis_custom") }[b] || b;
+}
+
+/* ---------- Working days & statutory vacation ---------- */
+function vacationFor(cc, age, children) {
+  age = +age || 0; children = +children || 0;
+  if (cc === "HU") {
+    // Munka Törvénykönyve: base 20 + age-based extra, + pótszabadság for children under 16
+    let extra = 0;
+    for (const [a, d] of [[25, 1], [28, 2], [31, 3], [33, 4], [35, 5], [37, 6], [39, 7], [41, 8], [43, 9], [45, 10]]) if (age >= a) extra = d;
+    let child = children === 1 ? 2 : children === 2 ? 4 : children >= 3 ? 7 : 0;
+    return 20 + extra + child;
+  }
+  if (cc === "AT") return 25;   // 5 weeks statutory
+  if (cc === "BR") return 22;   // 30 calendar days ≈ 22 working days
+  return 15;                    // US: no statutory minimum — typical default
+}
+async function autoFillWorkdays() {
+  const cc = state.country, year = new Date().getFullYear(), st = $("autoFillStatus");
+  st.textContent = t("sub_autofill_loading");
+  let weekdays = 0;
+  for (let ts = Date.UTC(year, 0, 1); ts < Date.UTC(year + 1, 0, 1); ts += 86400000) {
+    const wd = new Date(ts).getUTCDay(); if (wd >= 1 && wd <= 5) weekdays++;
+  }
+  let holidays = state.subHolidays, source = t("sub_autofill_offline");
+  try {
+    const r = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/${cc}`);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const hs = await r.json();
+    const set = new Set();
+    for (const h of hs) {
+      if (h.global === false) continue;            // nationwide holidays only
+      const wd = new Date(h.date + "T00:00:00Z").getUTCDay();
+      if (wd >= 1 && wd <= 5) set.add(h.date);      // dedupe & weekdays only
+    }
+    holidays = set.size; source = "Nager.Date " + year;
+  } catch (e) { /* keep offline fallback */ }
+  state.subWorkDays = weekdays;
+  state.subHolidays = holidays;
+  state.subPto = vacationFor(cc, state.candidateAge, state.children);
+  saveState(); hydrateInputs(); renderSub();
+  const msg = t("sub_autofill_done").replace("{src}", source).replace("{days}", weekdays).replace("{hol}", holidays).replace("{pto}", state.subPto);
+  st.textContent = msg; toast(msg, "ok");
 }
 
 /* ---------- Health plan editor (Parameters) ---------- */
@@ -1992,6 +2040,7 @@ function bindInputs() {
   $("countrySel").addEventListener("change", e => setCountry(e.target.value));
   $("currSel").addEventListener("change", e => setCurrency(e.target.value));
   $("periodBtn").addEventListener("click", () => setPeriod(state.period === "monthly" ? "annual" : "monthly"));
+  $("autoFillBtn").addEventListener("click", autoFillWorkdays);
   // Country-specific parameter inputs
   document.querySelectorAll("[data-cp]").forEach(el => {
     const obj = el.dataset.cp, k = el.dataset.k;
