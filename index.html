@@ -1017,6 +1017,10 @@ const I18N = {
     tip_state: "Sets the state income-tax rate (auto-filled from the state, editable in Parameters).",
     tip_age: "Drives the 401(k) catch-up note (US) and the statutory vacation estimate.",
     tip_marital: "Single vs. married — selects the federal tax brackets and standard deduction (US).",
+    tip_age_us: "Drives the 401(k) catch-up note and the statutory vacation estimate.",
+    tip_age_x: "Used for the statutory vacation estimate (age can add extra days where applicable).",
+    tip_marital_us: "Single vs. married — selects the US federal tax brackets and standard deduction.",
+    tip_marital_x: "Recorded for the proposal; it does not change this country's tax calculation.",
     tip_children: "Affects HU family allowance, BR dependents and the vacation estimate.",
     tip_base: "Gross base salary, in the chosen currency and basis (monthly/annual).",
     tip_bonus: "Annual bonus — a % of base or a fixed amount.",
@@ -1107,6 +1111,10 @@ const I18N = {
     tip_state: "Beállítja az állami jövedelemadó kulcsát (auto az államból, a Paramétereknél módosítható).",
     tip_age: "A 401(k) felzárkóztató jelzést (US) és a törvényi szabadnap-becslést befolyásolja.",
     tip_marital: "Egyedülálló/házas — a szövetségi sávokat és levonást választja (US).",
+    tip_age_us: "A 401(k) felzárkóztató jelzést és a törvényi szabadnap-becslést befolyásolja.",
+    tip_age_x: "A törvényi szabadnap-becsléshez használjuk (a kor extra napokat adhat, ahol releváns).",
+    tip_marital_us: "Egyedülálló/házas — az amerikai szövetségi adósávokat és a standard levonást választja.",
+    tip_marital_x: "Az ajánlathoz rögzítjük; ennek az országnak az adószámítását nem befolyásolja.",
     tip_children: "Befolyásolja a HU családi kedvezményt, a BR eltartottakat és a szabadnap-becslést.",
     tip_base: "Bruttó alapbér, a választott pénznemben és alapon (havi/éves).",
     tip_bonus: "Éves bónusz — az alapbér %-a vagy fix összeg.",
@@ -1177,7 +1185,7 @@ function setCountry(cc) {
   state.period = PERIOD_DEFAULT[cc] || "annual";
   reexpress(oldCurr, oldPeriod);
   $("countrySel").value = cc;
-  saveState(); hydrateInputs(); applyCountryUI(); applyCurrencyUI(); renderBenefits(); renderAll();
+  saveState(); hydrateInputs(); applyCountryUI(); applyCurrencyUI(); applyTooltips(); renderBenefits(); renderAll();
   toast(COUNTRIES[cc].flag + " " + COUNTRIES[cc].name + " · " + state.curr, "ok");
 }
 function setCurrency(iso) {
@@ -1317,9 +1325,15 @@ function applyI18n() {
   applyTooltips();
   document.documentElement.lang = state.lang;
 }
+function tipText(key) {
+  const cc = state.country;
+  if (key === "tip_age") return t(cc === "US" ? "tip_age_us" : "tip_age_x");
+  if (key === "tip_marital") return t(cc === "US" ? "tip_marital_us" : "tip_marital_x");
+  return t(key);
+}
 function applyTooltips() {
   document.querySelectorAll(".info[data-tip]").forEach(el => {
-    const box = el.querySelector(".tipbox"); if (box) box.textContent = t(el.getAttribute("data-tip"));
+    const box = el.querySelector(".tipbox"); if (box) box.textContent = tipText(el.getAttribute("data-tip"));
   });
 }
 const escHtml = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
