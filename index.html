@@ -254,9 +254,14 @@
   /* info tooltip */
   .info { display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; border:1px solid var(--border); color:var(--muted); font-size:10px; font-weight:700; font-style:normal; cursor:help; position:relative; margin-left:5px; vertical-align:middle; }
   .info:hover, .info:focus { color:var(--accent); border-color:var(--accent); outline:none; }
-  .info .tipbox { display:none; position:absolute; z-index:60; left:50%; transform:translateX(-50%); bottom:150%; width:230px; max-width:60vw; background:#1d2733; color:#fff; padding:8px 11px; border-radius:8px; font-size:11px; font-weight:400; line-height:1.45; box-shadow:var(--shadow-lg); text-transform:none; letter-spacing:normal; text-align:left; }
-  .info .tipbox::after { content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:#1d2733; }
-  .info:hover .tipbox, .info:focus .tipbox, .info:focus-within .tipbox { display:block; }
+  .info .tipbox { display:none; }
+  .gtip {
+    position:fixed; z-index:9999; max-width:min(280px, 88vw);
+    background:#16212e; color:#fff; padding:9px 12px; border-radius:9px;
+    font-size:11.5px; font-weight:400; line-height:1.45; box-shadow:var(--shadow-lg);
+    pointer-events:none; opacity:0; transition:opacity .12s ease; display:none;
+    text-transform:none; letter-spacing:normal; text-align:left;
+  }
   /* fx table */
   .fx-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums; }
   .fx-row:last-child { border-bottom:none; }
@@ -789,6 +794,7 @@
 
 <footer><span id="footerText"></span></footer>
 
+<div class="gtip" id="globalTip"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1331,10 +1337,31 @@ function tipText(key) {
   if (key === "tip_marital") return t(cc === "US" ? "tip_marital_us" : "tip_marital_x");
   return t(key);
 }
-function applyTooltips() {
+function applyTooltips() { /* content is resolved live by the global tooltip on hover/focus */ }
+function initTooltips() {
+  const tip = $("globalTip"); if (!tip) return;
+  let cur = null;
+  function place(el) {
+    const txt = tipText(el.getAttribute("data-tip")); if (!txt) return;
+    tip.textContent = txt;
+    tip.style.display = "block"; tip.style.opacity = "0";
+    const r = el.getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight, m = 8, vw = window.innerWidth, vh = window.innerHeight;
+    let left = Math.max(m, Math.min(r.left + r.width / 2 - tw / 2, vw - tw - m));
+    let top = r.top - th - 10;                       // prefer above
+    if (top < m) top = Math.min(r.bottom + 10, vh - th - m); // else below, clamped
+    tip.style.left = left + "px"; tip.style.top = Math.max(m, top) + "px"; tip.style.opacity = "1";
+    cur = el;
+  }
+  function hide() { tip.style.opacity = "0"; tip.style.display = "none"; cur = null; }
   document.querySelectorAll(".info[data-tip]").forEach(el => {
-    const box = el.querySelector(".tipbox"); if (box) box.textContent = tipText(el.getAttribute("data-tip"));
+    el.addEventListener("mouseenter", () => place(el));
+    el.addEventListener("mouseleave", hide);
+    el.addEventListener("focus", () => place(el));
+    el.addEventListener("blur", hide);
   });
+  window.addEventListener("scroll", () => { if (cur) hide(); }, true);
+  window.addEventListener("resize", hide);
 }
 const escHtml = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const escAttr = t => String(t).replace(/"/g,"&quot;").replace(/</g,"&lt;");
@@ -2433,6 +2460,7 @@ buildCountrySelect();
 buildCurrSelect();
 hydrateInputs();
 bindInputs();
+initTooltips();
 applyI18n();
 applyCountryUI();
 applyCurrencyUI();
